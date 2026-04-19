@@ -9,7 +9,8 @@ import WindowEngine
 /// Main-actor isolated: Carbon's event handler runs on the main run loop.
 @MainActor
 public final class HotkeyManager {
-    public var onAction: ((WindowAction) -> Void)?
+    public var onAction: ((WindowAction, Int) -> Void)?
+    public var tapWindowSeconds: () -> TimeInterval = { 0.4 }
 
     private struct Registration {
         let hotKeyRef: EventHotKeyRef
@@ -20,6 +21,7 @@ public final class HotkeyManager {
     private var idToAction: [UInt32: WindowAction] = [:]
     private var eventHandlerRef: EventHandlerRef?
     private var nextID: UInt32 = 1
+    private let tapDetector: TapDetector
     private static let signature: OSType = 0x574B4954 // 'WKIT'
 
     /// Maps our manager pointer -> closure used by the C callback. Accessed
@@ -28,7 +30,8 @@ public final class HotkeyManager {
     /// fighting the type system.
     nonisolated(unsafe) private static var dispatchers: [ObjectIdentifier: (UInt32) -> Void] = [:]
 
-    public init() {
+    public init(tapDetector: TapDetector? = nil) {
+        self.tapDetector = tapDetector ?? TapDetector()
         installEventHandler()
     }
 
@@ -95,7 +98,8 @@ public final class HotkeyManager {
             // touch MainActor-isolated state safely.
             MainActor.assumeIsolated {
                 guard let self, let action = self.idToAction[id] else { return }
-                self.onAction?(action)
+                let count = self.tapDetector.register(action, window: self.tapWindowSeconds())
+                self.onAction?(action, count)
             }
         }
 

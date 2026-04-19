@@ -67,3 +67,63 @@ These steps must be performed on a real macOS 14+ session and ticked off before 
 - Architecture: arm64 (Apple Silicon)
 - Signature: ad-hoc
 - Version: 0.1.0 (1)
+
+---
+
+# WindowKit v0.2 — Integration Verification
+
+Date: 2026-04-19
+Integrator: `integrator` (task #4)
+
+v0.2 adds multi-tap cycles on the 3×3 grid keys, four new horizontal-band actions (`topThird`, `bottomThird`, `topTwoThirds`, `bottomTwoThirds`), a configurable tap-window preference (150–700 ms, default 400), dock-aware placement (via `NSScreen.visibleFrame`), and move-only fallback for non-resizable apps.
+
+## Programmatic (v0.2)
+
+| # | Check | Result | Evidence |
+|---|---|---|---|
+| P1 | `swift build` (debug) succeeds | ✅ PASS | Clean link, same two pre-existing `UnsafeRawPointer` warnings in `AXWindow.swift`. No new warnings. |
+| P2 | `swift build -c release` succeeds | ✅ PASS | Via `scripts/build-app.sh`; `Build complete! (6.21s)`. |
+| P3 | `swift test` — all targets | ✅ PASS | **56 tests, 0 failures** in 0.031 s. Breakdown: `WindowEngineTests` 33 · `PreferencesStoreTests` 9 · `HotkeyManagerTests.TapCyclesTests` 8 · `HotkeyManagerTests.TapDetectorTests` 6. |
+| P4 | `.app` bundle assembles | ✅ PASS | `build/WindowKit.app` rebuilt cleanly. |
+| P5 | `.app` launches without crashing | ✅ PASS | `open build/WindowKit.app` → process `WindowKit` appears in `System Events`; `killall WindowKit` cleanly terminates. |
+| P6 | No duplicate/stale `tapWindowMs` declarations | ✅ PASS | Single definition in `Sources/PreferencesStore/PreferencesStore.swift:16` with clamp [150,700] and UserDefaults persistence under `WindowKit.tapWindowMs`. |
+
+## Module wiring (v0.2, code-review)
+
+| # | Wiring | Result |
+|---|---|---|
+| W1 | `PreferencesStore.tapWindowMs` → `HotkeyManager.tapWindowSeconds` closure wired in `WindowKitApp.applicationDidFinishLaunching` (reads fresh value per press, ms→s conversion) | ✅ |
+| W2 | `HotkeyManager` hotkey callback → `TapDetector.register(action, window: tapWindowSeconds())` → 1-based tap count → `onAction(action, count)` | ✅ |
+| W3 | `ActionRunner.perform(_:tapCount:)` → `TapCycles.resolve(action, tapCount:)` → branch on `.undo / .redo / nextDisplay / previousDisplay` or `performGeometry(resolved)` | ✅ |
+| W4 | `performGeometry` feeds `screen.visibleFrame` (already dock-aware) via `CoordinateConverter.cocoaToAX` → `Geometry.targetFrame` → `AXWindow.setFrame(target)` | ✅ |
+| W5 | `AXWindow.setFrame` sequences position→size→position, returns `SetFrameResult(positionApplied, sizeApplied)`; marked `@discardableResult` | ✅ |
+| W6 | `ActionRunner.apply` discards `SetFrameResult` — no beep, no revert on `sizeApplied=false`. Move-only fallback for non-resizable apps is the intended silent behavior. | ✅ |
+| W7 | `TapCycles.default` covers all 9 grid actions; wrap-after-last via modulo `((tapCount-1) % n + n) % n` | ✅ |
+| W8 | Preferences UI "Tap Behavior" slider binds `store.tapWindowMs` (150…700, step 10); cycle captions rendered under each grid row | ✅ |
+
+## Manual (v0.2, ⚠ requires human tester)
+
+Numbered V2-M1..V2-M12 to avoid clashing with v0.1's M1–M14.
+
+| # | Scenario | Status |
+|---|---|---|
+| V2-M1 | Launch rebuilt `build/WindowKit.app` → menu-bar icon, no Dock icon, no crash on cold start | ⚠ |
+| V2-M2 | Preferences → new "Tap Behavior" card at top of Shortcuts tab; slider shows current ms value; dragging updates live | ⚠ |
+| V2-M3 | Each of the 9 grid rows shows a small read-only caption listing its cycle steps (e.g., "1× cell · 2× 1/3 band · 3× half · 4× 2/3") | ⚠ |
+| V2-M4 | Focus Safari. ⌘⌥U once → top-left 1/9 cell. ⌘⌥U again within 400 ms → top-left quadrant (1/4). Wait 1 s, press again → back to 1/9. | ⚠ |
+| V2-M5 | ⌘⌥I four times rapidly → cycles 1/9 → top 1/3 → top 1/2 → top 2/3. 5th press within window wraps back to 1/9. | ⚠ |
+| V2-M6 | ⌘⌥L three times rapidly → 1/9 → right 1/3 → right 1/2. | ⚠ |
+| V2-M7 | ⌘⌥K twice rapidly → 1/9 → fullscreen. | ⚠ |
+| V2-M8 | Set slider to 200 ms. Double-taps at ~300 ms gap now count as separate single-taps (each fires 1/9). | ⚠ |
+| V2-M9 | Interleave ⌘⌥I then ⌘⌥, — each grid key maintains its own independent cycle state; no cross-contamination. | ⚠ |
+| V2-M10 | **Dock awareness (pinned)**: with Dock pinned at bottom, ⌘⌥, → snapped window's bottom edge is flush with Dock's TOP edge, not the screen bottom. Repeat with Dock on left (⌘⌥J) and right (⌘⌥L). | ⚠ |
+| V2-M11 | **Dock awareness (auto-hide)**: with auto-hide Dock, ⌘⌥, → window extends to screen bottom (expected); Dock overlays on hover (expected). | ⚠ |
+| V2-M12 | **Non-resizable apps still move**: open a fixed-size System Settings pane and focus it. Press ⌘⌥U. Window MOVES to top-left 1/9 cell origin but keeps its intrinsic size. No beep, no error, no revert. | ⚠ |
+
+## Bundle (v0.2)
+
+- Path: `build/WindowKit.app`
+- Identifier: `co.dotfun.WindowKit`
+- Architecture: arm64 (Apple Silicon)
+- Signature: ad-hoc
+- Rebuilt: 2026-04-19

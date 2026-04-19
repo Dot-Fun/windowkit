@@ -59,5 +59,10 @@ let package = Package(
             dependencies: ["PreferencesStore", "WindowEngine"],
             path: "Tests/PreferencesStoreTests"
         ),
+        .testTarget(
+            name: "HotkeyManagerTests",
+            dependencies: ["HotkeyManager", "WindowEngine"],
+            path: "Tests/HotkeyManagerTests"
+        ),
     ]
 )

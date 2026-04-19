@@ -48,16 +48,35 @@ public struct AXWindow: Equatable {
         return CGRect(origin: pos, size: size)
     }
 
-    /// Set the window's frame in AX coordinates. Some windows refuse
-    /// resize; callers should re-read `frame()` if exact positioning
-    /// matters.
+    /// Result of attempting to move/resize a window. Some apps clamp
+    /// size (System Settings, 1Password mini, etc.) — `sizeApplied`
+    /// may be false while `positionApplied` is true. Callers should
+    /// treat that as a legitimate outcome rather than a failure.
+    public struct SetFrameResult: Equatable, Sendable {
+        public let positionApplied: Bool
+        public let sizeApplied: Bool
+
+        public init(positionApplied: Bool, sizeApplied: Bool) {
+            self.positionApplied = positionApplied
+            self.sizeApplied = sizeApplied
+        }
+    }
+
+    /// Set the window's frame in AX coordinates.
+    ///
+    /// We write position twice (position → size → position) because
+    /// some apps that clamp size also shift origin as a side effect;
+    /// the second position write pins the origin back where we want
+    /// it. `sizeApplied == false` is legitimate and the caller decides
+    /// what to do with it.
     @discardableResult
-    public func setFrame(_ frame: CGRect) -> Bool {
-        let posOK = setValue(CGPoint(x: frame.origin.x, y: frame.origin.y),
-                             type: .cgPoint, attribute: kAXPositionAttribute)
+    public func setFrame(_ frame: CGRect) -> SetFrameResult {
+        let pt = CGPoint(x: frame.origin.x, y: frame.origin.y)
+        let posOK1 = setValue(pt, type: .cgPoint, attribute: kAXPositionAttribute)
         let sizeOK = setValue(CGSize(width: frame.width, height: frame.height),
                               type: .cgSize, attribute: kAXSizeAttribute)
-        return posOK && sizeOK
+        let posOK2 = setValue(pt, type: .cgPoint, attribute: kAXPositionAttribute)
+        return SetFrameResult(positionApplied: posOK1 || posOK2, sizeApplied: sizeOK)
     }
 
     // MARK: - AXValue plumbing

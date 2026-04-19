@@ -57,6 +57,12 @@ public enum Geometry {
         case .firstTwoThirds: return hRange(screen, startCol: 0, endCol: 2, outOf: 3)
         case .lastTwoThirds:  return hRange(screen, startCol: 1, endCol: 3, outOf: 3)
 
+        // MARK: horizontal bands (full width, vertical portion)
+        case .topThird:        return vRange(screen, startRow: 0, endRow: 1, outOf: 3)
+        case .bottomThird:     return vRange(screen, startRow: 2, endRow: 3, outOf: 3)
+        case .topTwoThirds:    return vRange(screen, startRow: 0, endRow: 2, outOf: 3)
+        case .bottomTwoThirds: return vRange(screen, startRow: 1, endRow: 3, outOf: 3)
+
         // MARK: sixths (2 rows x 3 cols)
         case .topLeftSixth:      return cell(screen, col: 0, row: 0, cols: 3, rows: 2)
         case .topCenterSixth:    return cell(screen, col: 1, row: 0, cols: 3, rows: 2)
@@ -151,6 +157,17 @@ public enum Geometry {
             y: screen.minY,
             width: xs[endCol] - xs[startCol],
             height: screen.height
+        )
+    }
+
+    /// Range of rows `[startRow, endRow)` of `outOf` equal rows, full width.
+    static func vRange(_ screen: CGRect, startRow: Int, endRow: Int, outOf: Int) -> CGRect {
+        let ys = boundaries(length: screen.height, count: outOf)
+        return CGRect(
+            x: screen.minX,
+            y: screen.minY + ys[startRow],
+            width: screen.width,
+            height: ys[endRow] - ys[startRow]
         )
     }
 

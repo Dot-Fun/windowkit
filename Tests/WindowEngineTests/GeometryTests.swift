@@ -145,6 +145,51 @@ final class GeometryTests: XCTestCase {
                        CGRect(x: 640, y: 0, width: 1280, height: 1080))
     }
 
+    // MARK: - Horizontal bands
+
+    func testHorizontalBandsTileExactlyFullHD() {
+        let top = Geometry.targetFrame(for: .topThird, screen: fullHD, current: .zero)!
+        let bottomTwo = Geometry.targetFrame(for: .bottomTwoThirds, screen: fullHD, current: .zero)!
+        let bottom = Geometry.targetFrame(for: .bottomThird, screen: fullHD, current: .zero)!
+        let topTwo = Geometry.targetFrame(for: .topTwoThirds, screen: fullHD, current: .zero)!
+
+        // Full width everywhere
+        for r in [top, bottomTwo, bottom, topTwo] {
+            XCTAssertEqual(r.origin.x, fullHD.minX)
+            XCTAssertEqual(r.width, fullHD.width)
+        }
+
+        // Exact tiling: topThird ∪ bottomTwoThirds covers screen with no gap/overlap
+        XCTAssertEqual(top.minY, fullHD.minY)
+        XCTAssertEqual(top.maxY, bottomTwo.minY)
+        XCTAssertEqual(bottomTwo.maxY, fullHD.maxY)
+        XCTAssertEqual(top.height + bottomTwo.height, fullHD.height)
+
+        // And topTwoThirds ∪ bottomThird also tiles
+        XCTAssertEqual(topTwo.minY, fullHD.minY)
+        XCTAssertEqual(topTwo.maxY, bottom.minY)
+        XCTAssertEqual(bottom.maxY, fullHD.maxY)
+        XCTAssertEqual(topTwo.height + bottom.height, fullHD.height)
+    }
+
+    func testHorizontalBandsTileExactlyOddSize() {
+        let square = CGRect(x: 0, y: 0, width: 1000, height: 1000)
+        let top = Geometry.targetFrame(for: .topThird, screen: square, current: .zero)!
+        let bottomTwo = Geometry.targetFrame(for: .bottomTwoThirds, screen: square, current: .zero)!
+        let bottom = Geometry.targetFrame(for: .bottomThird, screen: square, current: .zero)!
+        let topTwo = Geometry.targetFrame(for: .topTwoThirds, screen: square, current: .zero)!
+
+        // Exact tiling even when height/3 is non-integer
+        XCTAssertEqual(top.maxY, bottomTwo.minY)
+        XCTAssertEqual(top.height + bottomTwo.height, square.height)
+        XCTAssertEqual(topTwo.maxY, bottom.minY)
+        XCTAssertEqual(topTwo.height + bottom.height, square.height)
+
+        // Bands anchored correctly
+        XCTAssertEqual(top.minY, square.minY)
+        XCTAssertEqual(bottom.maxY, square.maxY)
+    }
+
     // MARK: - Sixths (2 rows x 3 cols)
 
     func testSixthsTileExactly() {

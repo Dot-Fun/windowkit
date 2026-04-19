@@ -1,6 +1,7 @@
 import AppKit
 import CoreGraphics
 import Foundation
+import HotkeyManager
 import UndoStack
 import WindowEngine
 
@@ -21,8 +22,9 @@ public final class ActionRunner {
         self.undo = undoStack
     }
 
-    public func perform(_ action: WindowAction) {
-        switch action {
+    public func perform(_ action: WindowAction, tapCount: Int = 1) {
+        let resolved = TapCycles.resolve(action, tapCount: tapCount)
+        switch resolved {
         case .undo:
             performUndo()
         case .redo:
@@ -32,7 +34,7 @@ public final class ActionRunner {
         case .previousDisplay:
             moveToAdjacentDisplay(next: false)
         default:
-            performGeometry(action)
+            performGeometry(resolved)
         }
     }
 
