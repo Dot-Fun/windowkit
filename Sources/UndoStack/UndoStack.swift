@@ -2,7 +2,7 @@ import CoreGraphics
 import Foundation
 
 public final class UndoStack {
-    public struct Snapshot {
+    public struct Snapshot: Equatable, Sendable {
         public let frame: CGRect
         public init(frame: CGRect) { self.frame = frame }
     }
@@ -10,16 +10,30 @@ public final class UndoStack {
     private var frames: [Snapshot] = []
     private let limit: Int
 
-    public init(limit: Int = 10) {
+    public init(limit: Int = 20) {
+        precondition(limit > 0, "UndoStack limit must be positive")
         self.limit = limit
     }
 
+    public var count: Int { frames.count }
+    public var isEmpty: Bool { frames.isEmpty }
+
     public func push(_ snapshot: Snapshot) {
-        // TODO: implement in engine-dev task.
+        frames.append(snapshot)
+        if frames.count > limit {
+            frames.removeFirst(frames.count - limit)
+        }
     }
 
     public func pop() -> Snapshot? {
-        // TODO: implement in engine-dev task.
-        return nil
+        frames.popLast()
+    }
+
+    public func peek() -> Snapshot? {
+        frames.last
+    }
+
+    public func clear() {
+        frames.removeAll()
     }
 }

@@ -5,15 +5,14 @@ public final class PermissionsCoordinator {
     public init() {}
 
     public func isTrusted() -> Bool {
-        // TODO: implement in ui-dev task using AXIsProcessTrustedWithOptions.
-        return false
+        AccessibilityTrust.isTrusted(prompt: false)
     }
 
     public func promptForTrust() {
-        // TODO: implement in ui-dev task.
+        _ = AccessibilityTrust.isTrusted(prompt: true)
     }
 
     public func openAccessibilitySettings() {
-        // TODO: implement in ui-dev task.
+        AccessibilityTrust.openSystemSettings()
     }
 }

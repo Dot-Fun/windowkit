@@ -54,5 +54,10 @@ let package = Package(
             dependencies: ["WindowEngine"],
             path: "Tests/WindowEngineTests"
         ),
+        .testTarget(
+            name: "PreferencesStoreTests",
+            dependencies: ["PreferencesStore", "WindowEngine"],
+            path: "Tests/PreferencesStoreTests"
+        ),
     ]
 )
