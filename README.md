@@ -105,6 +105,25 @@ M , .
 
 All shortcuts are configurable in **Preferences → Keyboard Shortcuts** (⌘, from the menu bar).
 
+### Multi-tap cycles
+
+Each 3×3 grid key starts a cycle. Tapping the same key again within the **tap window** (default 400 ms, configurable 150–700 ms in **Preferences → Shortcuts → Tap Behavior**) advances to a larger size anchored at that position. After the last step, another tap wraps back to the 1/9 cell. After the tap window elapses with no press, the counter resets and the next tap is a 1-tap again.
+
+| Position | Keys | Cycle (1-tap → last) |
+|---|---|---|
+| Corners | U, O, M, . | 1/9 cell → matching quadrant |
+| Top / bottom edges | I, , | 1/9 cell → top/bottom 1/3 band → top/bottom 1/2 → top/bottom 2/3 |
+| Side edges | J, L | 1/9 cell → left/right 1/3 column → left/right 1/2 → left/right 2/3 |
+| Center | K | 1/9 cell → fullscreen |
+
+Tapping a *different* key resets the cycle — each key tracks its own counter.
+
+### Known behaviors
+
+- **Non-resizable apps** (e.g. System Settings panels) will be **moved** to the target location but keep their intrinsic size. WindowKit does not beep or error on move-only outcomes.
+- **The Dock is respected** — snapped windows will not overlap a pinned Dock. The target frame is computed against `NSScreen.visibleFrame`, which excludes the Dock and menu bar.
+- **Auto-hide Dock** lets windows use the full screen; the Dock overlays on hover (standard macOS behavior).
+
 ## Permissions
 
 WindowKit requires **Accessibility** access to query and set frames of other apps' windows via `AXUIElement`. Without it, no hotkeys will take effect. On first launch the app shows an onboarding window with a button that opens **System Settings → Privacy & Security → Accessibility**.

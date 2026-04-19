@@ -4,8 +4,10 @@ import WindowEngine
 
 public struct PreferencesWindow: View {
     @StateObject private var model: PreferencesViewModel
+    @ObservedObject private var store: PreferencesStore
 
     public init(store: PreferencesStore) {
+        self.store = store
         _model = StateObject(wrappedValue: PreferencesViewModel(store: store))
     }
 
@@ -13,6 +15,8 @@ public struct PreferencesWindow: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 header
+
+                TapBehaviorCard(store: store)
 
                 ForEach(ActionCatalog.groups) { group in
                     ActionGroupSection(
@@ -27,7 +31,7 @@ public struct PreferencesWindow: View {
             }
             .padding(20)
         }
-        .frame(minWidth: 560, minHeight: 520)
+        .frame(minWidth: 560, minHeight: 560)
     }
 
     private var header: some View {
@@ -135,6 +139,12 @@ private struct ActionRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(ActionCatalog.displayName(for: action))
                     .font(.body)
+                if let caption = ActionCatalog.cycleCaption(for: action) {
+                    Text(caption)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 if hasConflict {
                     Label("Conflicts with another shortcut", systemImage: "exclamationmark.triangle.fill")
                         .font(.caption)
@@ -192,5 +202,47 @@ private struct ThreeByThreeGridDiagram: View {
         .padding(10)
         .background(Color(nsColor: .windowBackgroundColor))
         .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+}
+
+/// "Tap Behavior" card: explains multi-tap cycles and exposes the tap-window slider.
+private struct TapBehaviorCard: View {
+    @ObservedObject var store: PreferencesStore
+
+    private var tapWindowBinding: Binding<Double> {
+        Binding(
+            get: { Double(store.tapWindowMs) },
+            set: { store.tapWindowMs = Int($0.rounded()) }
+        )
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Multi-tap cycles")
+                .font(.headline)
+
+            Text("Tap the same spatial key again within the window below to cycle through larger sizes at that position. After the last step, another tap wraps back to the smallest.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            HStack(spacing: 12) {
+                Text("Tap window")
+                    .frame(width: 100, alignment: .leading)
+                Slider(value: tapWindowBinding, in: 150...700, step: 10)
+                Text("\(store.tapWindowMs) ms")
+                    .font(.body.monospacedDigit())
+                    .frame(width: 70, alignment: .trailing)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
+        )
     }
 }
