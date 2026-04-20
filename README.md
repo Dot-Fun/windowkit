@@ -1,13 +1,12 @@
-<p align="left">
+<h1>
   <a href="https://dotfun.co">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="docs/images/DotfunLogoDark.png">
-      <img src="docs/images/DotfunLogo.png" alt="dotfun" height="36">
+      <img src="docs/images/DotfunLogo.png" alt="dotfun" height="32" align="absmiddle">
     </picture>
   </a>
-</p>
-
-# WindowKit
+  &nbsp;WindowKit
+</h1>
 
 A native macOS Spectacle-style window manager by [dotfun](https://dotfun.co). Menubar utility that snaps the focused window to halves, quadrants, thirds, sixths, a 3×3 spatial grid, fullscreen, and across displays via global hotkeys.
 
