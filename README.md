@@ -199,3 +199,14 @@ If a specific app doesn't respond, open the menubar menu → **Debug → Copy Fo
 ## Distribution
 
 Unsigned local build. Not notarized. See unsigned-build caveat above.
+
+---
+
+<p align="center">
+  <a href="https://dotfun.co">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/images/DotfunLogoDark.png">
+      <img src="docs/images/DotfunLogo.png" alt="dotfun" height="28">
+    </picture>
+  </a>
+</p>
