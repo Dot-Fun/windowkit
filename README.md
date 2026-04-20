@@ -122,7 +122,7 @@ Each 3×3 grid key starts a cycle. Tapping the same key again within the **tap w
 | Corners | U, O, M, . | 1/9 cell → matching quadrant |
 | Top / bottom edges | I, , | 1/9 cell → top/bottom 1/3 band → top/bottom 1/2 → top/bottom 2/3 |
 | Side edges | J, L | 1/9 cell → left/right 1/3 column → left/right 1/2 → left/right 2/3 |
-| Center | K | 1/9 cell → fullscreen |
+| Center | K | 1/9 cell → 1/3 center column → fullscreen |
 
 Tapping a *different* key resets the cycle — each key tracks its own counter.
 

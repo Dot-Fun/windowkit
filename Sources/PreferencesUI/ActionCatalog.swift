@@ -133,7 +133,7 @@ public enum ActionCatalog {
         case .grid3MiddleLeft:
             return ["1× middle-left 1/9", "2× left 1/3", "3× left 1/2", "4× left 2/3"]
         case .grid3MiddleCenter:
-            return ["1× center 1/9", "2× fullscreen"]
+            return ["1× center 1/9", "2× 1/3 center column", "3× fullscreen"]
         case .grid3MiddleRight:
             return ["1× middle-right 1/9", "2× right 1/3", "3× right 1/2", "4× right 2/3"]
         case .grid3BottomLeft:

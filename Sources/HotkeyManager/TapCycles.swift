@@ -9,7 +9,7 @@ public enum TapCycles {
         .grid3TopCenter:    [.grid3TopCenter, .topThird, .topHalf, .topTwoThirds],
         .grid3TopRight:     [.grid3TopRight, .topRight],
         .grid3MiddleLeft:   [.grid3MiddleLeft, .firstThird, .leftHalf, .firstTwoThirds],
-        .grid3MiddleCenter: [.grid3MiddleCenter, .fullscreen],
+        .grid3MiddleCenter: [.grid3MiddleCenter, .centerThird, .fullscreen],
         .grid3MiddleRight:  [.grid3MiddleRight, .lastThird, .rightHalf, .lastTwoThirds],
         .grid3BottomLeft:   [.grid3BottomLeft, .bottomLeft],
         .grid3BottomCenter: [.grid3BottomCenter, .bottomThird, .bottomHalf, .bottomTwoThirds],

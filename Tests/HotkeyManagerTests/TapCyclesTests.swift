@@ -27,10 +27,11 @@ final class TapCyclesTests: XCTestCase {
         XCTAssertEqual(TapCycles.resolve(.grid3BottomRight, tapCount: 2), .bottomRight)
     }
 
-    func testMiddleCenterTwoStepCycle() {
+    func testMiddleCenterThreeStepCycle() {
         XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 1), .grid3MiddleCenter)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 2), .fullscreen)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 3), .grid3MiddleCenter)
+        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 2), .centerThird)
+        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 3), .fullscreen)
+        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 4), .grid3MiddleCenter)
     }
 
     func testVerticalBandCycles() {
