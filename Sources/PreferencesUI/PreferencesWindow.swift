@@ -52,9 +52,14 @@ public struct PreferencesWindow: View {
 
 struct DotfunLogo: View {
     let height: CGFloat
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var resourceName: String {
+        colorScheme == .dark ? "DotfunLogoDark" : "DotfunLogo"
+    }
 
     var body: some View {
-        if let url = Bundle.module.url(forResource: "DotfunLogo", withExtension: "png"),
+        if let url = Bundle.module.url(forResource: resourceName, withExtension: "png"),
            let nsImage = NSImage(contentsOf: url) {
             Image(nsImage: nsImage)
                 .resizable()
