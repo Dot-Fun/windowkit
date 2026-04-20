@@ -5,15 +5,15 @@ import WindowEngine
 /// successive taps. Wrap-around: tap N where N > cycle.count wraps via modulo.
 public enum TapCycles {
     public static let `default`: [WindowAction: [WindowAction]] = [
-        .grid3TopLeft:      [.grid3TopLeft, .topLeft, .topLeftTwoThirds],
-        .grid3TopCenter:    [.grid3TopCenter, .topThird, .topHalf, .topTwoThirds],
-        .grid3TopRight:     [.grid3TopRight, .topRight, .topRightTwoThirds],
-        .grid3MiddleLeft:   [.grid3MiddleLeft, .firstThird, .leftHalf, .firstTwoThirds],
-        .grid3MiddleCenter: [.grid3MiddleCenter, .centerThird, .fullscreen],
-        .grid3MiddleRight:  [.grid3MiddleRight, .lastThird, .rightHalf, .lastTwoThirds],
-        .grid3BottomLeft:   [.grid3BottomLeft, .bottomLeft, .bottomLeftTwoThirds],
-        .grid3BottomCenter: [.grid3BottomCenter, .bottomThird, .bottomHalf, .bottomTwoThirds],
-        .grid3BottomRight:  [.grid3BottomRight, .bottomRight, .bottomRightTwoThirds],
+        .grid3TopLeft:      [.topLeft, .grid3TopLeft, .topLeftTwoThirds],
+        .grid3TopCenter:    [.topHalf, .topThird, .grid3TopCenter, .topTwoThirds],
+        .grid3TopRight:     [.topRight, .grid3TopRight, .topRightTwoThirds],
+        .grid3MiddleLeft:   [.leftHalf, .firstThird, .grid3MiddleLeft, .firstTwoThirds],
+        .grid3MiddleCenter: [.fullscreen, .grid3MiddleCenter, .centerThird],
+        .grid3MiddleRight:  [.rightHalf, .lastThird, .grid3MiddleRight, .lastTwoThirds],
+        .grid3BottomLeft:   [.bottomLeft, .grid3BottomLeft, .bottomLeftTwoThirds],
+        .grid3BottomCenter: [.bottomHalf, .bottomThird, .grid3BottomCenter, .bottomTwoThirds],
+        .grid3BottomRight:  [.bottomRight, .grid3BottomRight, .bottomRightTwoThirds],
     ]
 
     /// Resolves `action` for a 1-based `tapCount`. Non-cycle actions return self.

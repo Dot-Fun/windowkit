@@ -1,8 +1,13 @@
 import AppKit
 import SwiftUI
+import UpdateChecker
 
 public struct AboutView: View {
-    public init() {}
+    @ObservedObject private var updateChecker: UpdateChecker
+
+    public init(updateChecker: UpdateChecker) {
+        self.updateChecker = updateChecker
+    }
 
     private var version: String {
         let info = Bundle.main.infoDictionary
@@ -21,6 +26,17 @@ public struct AboutView: View {
             Text("Version \(version)")
                 .font(.callout)
                 .foregroundStyle(.secondary)
+
+            if let update = updateChecker.availableUpdate {
+                Button("Update available — \(update.tagName)") {
+                    NSWorkspace.shared.open(update.htmlURL)
+                }
+                .buttonStyle(.link)
+            } else {
+                Text("Up to date")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Divider()
 

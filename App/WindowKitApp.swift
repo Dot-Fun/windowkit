@@ -7,6 +7,7 @@ import PreferencesUI
 import ServiceManagement
 import SwiftUI
 import UndoStack
+import UpdateChecker
 import WindowEngine
 
 /// dotfun brand orange, sampled from the logo wordmark.
@@ -16,18 +17,28 @@ let dotfunOrange = Color(red: 0.97, green: 0.32, blue: 0.12)
 struct WindowKitApp: App {
     @NSApplicationDelegateAdaptor(WindowKitAppDelegate.self) private var appDelegate
     @State private var launchAtLogin: Bool = LaunchAtLogin.isEnabled
+    @StateObject private var updateChecker: UpdateChecker = {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
+        return UpdateChecker(currentVersion: version, owner: "Dot-Fun", repo: "windowkit")
+    }()
 
     var body: some Scene {
         MenuBarExtra {
             Text("WindowKit")
                 .disabled(true)
+            if let update = updateChecker.availableUpdate {
+                Divider()
+                Button("Update available — \(update.tagName) →") {
+                    NSWorkspace.shared.open(update.htmlURL)
+                }
+            }
             Divider()
             Button("Preferences…") {
                 appDelegate.openPreferences()
             }
             .keyboardShortcut(",", modifiers: .command)
             Button("About WindowKit") {
-                appDelegate.openAbout()
+                appDelegate.openAbout(updateChecker: updateChecker)
             }
             Divider()
             Toggle("Launch at Login", isOn: $launchAtLogin)
@@ -41,6 +52,9 @@ struct WindowKitApp: App {
                 Button("Copy Focused Window Info") {
                     appDelegate.copyFocusedWindowDiagnostics()
                 }
+                Button("Check for Updates…") {
+                    updateChecker.check()
+                }
             }
             Divider()
             Button("Quit WindowKit") {
@@ -51,6 +65,7 @@ struct WindowKitApp: App {
             Image(systemName: "rectangle.3.group")
                 .symbolRenderingMode(.palette)
                 .foregroundStyle(dotfunOrange)
+                .task { updateChecker.start() }
         }
         .menuBarExtraStyle(.menu)
     }
@@ -216,9 +231,9 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
         pb.setString(report, forType: .string)
     }
 
-    func openAbout() {
+    func openAbout(updateChecker: UpdateChecker) {
         if aboutWindow == nil {
-            let hosting = NSHostingController(rootView: AboutView())
+            let hosting = NSHostingController(rootView: AboutView(updateChecker: updateChecker))
             let window = NSWindow(contentViewController: hosting)
             window.title = "About WindowKit"
             window.styleMask = [.titled, .closable]

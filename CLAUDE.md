@@ -1,3 +1,7 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # WindowKit — Claude notes
 
 Native macOS window manager. SwiftPM project; the app target is `WindowKit` (in `App/`), libraries live under `Sources/`.
@@ -5,9 +9,10 @@ Native macOS window manager. SwiftPM project; the app target is `WindowKit` (in 
 ## Build + run
 
 ```
-swift build              # debug
-swift test               # 56 tests
-scripts/build-app.sh     # release build + assembles build/WindowKit.app
+swift build                              # debug
+swift test                               # 56 tests
+swift test --filter GeometryTests        # single test class / method
+scripts/build-app.sh                     # release build + assembles build/WindowKit.app
 open build/WindowKit.app
 ```
 
@@ -22,7 +27,7 @@ The build is **unsigned / ad-hoc signed**. Every rebuild produces a fresh code i
 1. System Settings → Privacy & Security → Accessibility
 2. Select **WindowKit** → click the **−** button to remove it
 3. `killall WindowKit`
-4. Drag `/Users/alvinycheung/sandbox/window-management/build/WindowKit.app` back into the list
+4. Drag `/Users/alvinycheung/sandbox/windowkit/build/WindowKit.app` back into the list
 5. Toggle it on
 
 Do not say "try it now" after a rebuild. Say "do the re-grant dance first, then try it."

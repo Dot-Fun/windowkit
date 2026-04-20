@@ -12,6 +12,7 @@ let package = Package(
         .library(name: "PreferencesUI", targets: ["PreferencesUI"]),
         .library(name: "PermissionsCoordinator", targets: ["PermissionsCoordinator"]),
         .library(name: "UndoStack", targets: ["UndoStack"]),
+        .library(name: "UpdateChecker", targets: ["UpdateChecker"]),
     ],
     targets: [
         .executableTarget(
@@ -23,6 +24,7 @@ let package = Package(
                 "PreferencesUI",
                 "PermissionsCoordinator",
                 "UndoStack",
+                "UpdateChecker",
             ],
             path: "App",
             exclude: ["Info.plist", "Assets.xcassets", "AppIcon.icns"]
@@ -40,7 +42,7 @@ let package = Package(
         ),
         .target(
             name: "PreferencesUI",
-            dependencies: ["PreferencesStore", "HotkeyManager", "WindowEngine", "PermissionsCoordinator"],
+            dependencies: ["PreferencesStore", "HotkeyManager", "WindowEngine", "PermissionsCoordinator", "UpdateChecker"],
             path: "Sources/PreferencesUI",
             resources: [.process("Resources")]
         ),
@@ -50,6 +52,7 @@ let package = Package(
             dependencies: ["WindowEngine"],
             path: "Sources/UndoStack"
         ),
+        .target(name: "UpdateChecker", path: "Sources/UpdateChecker"),
         .testTarget(
             name: "WindowEngineTests",
             dependencies: ["WindowEngine"],
@@ -64,6 +67,11 @@ let package = Package(
             name: "HotkeyManagerTests",
             dependencies: ["HotkeyManager", "WindowEngine"],
             path: "Tests/HotkeyManagerTests"
+        ),
+        .testTarget(
+            name: "UpdateCheckerTests",
+            dependencies: ["UpdateChecker"],
+            path: "Tests/UpdateCheckerTests"
         ),
     ]
 )
