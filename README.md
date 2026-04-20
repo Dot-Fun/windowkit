@@ -2,6 +2,12 @@
 
 A native macOS Spectacle-style window manager by [dotfun](https://dotfun.co). Menubar utility that snaps the focused window to halves, quadrants, thirds, sixths, a 3×3 spatial grid, fullscreen, and across displays via global hotkeys.
 
+<p align="center">
+  <img src="docs/images/dotfun-windowkit-menu.png" alt="WindowKit menubar menu" width="300" />
+  &nbsp;&nbsp;
+  <img src="docs/images/dotfun-windowkit-preferences.png" alt="WindowKit preferences window" width="420" />
+</p>
+
 **License**: Apache 2.0 — see [`LICENSE`](LICENSE). Provided "as is", without warranty of any kind, express or implied. The authors and dotfun are not liable for any damages arising from use of this software.
 
 ## Requirements
