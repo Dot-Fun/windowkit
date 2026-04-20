@@ -10,7 +10,7 @@ import WindowEngine
 @MainActor
 public final class HotkeyManager {
     public var onAction: ((WindowAction, Int) -> Void)?
-    public var tapWindowSeconds: () -> TimeInterval = { 0.4 }
+    public var tapWindowSeconds: () -> TimeInterval = { 0.7 }
 
     private struct Registration {
         let hotKeyRef: EventHotKeyRef

@@ -25,7 +25,7 @@ let package = Package(
                 "UndoStack",
             ],
             path: "App",
-            exclude: ["Info.plist", "Assets.xcassets"]
+            exclude: ["Info.plist", "Assets.xcassets", "AppIcon.icns"]
         ),
         .target(name: "WindowEngine", path: "Sources/WindowEngine"),
         .target(

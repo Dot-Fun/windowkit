@@ -37,6 +37,12 @@ struct WindowKitApp: App {
                     launchAtLogin = LaunchAtLogin.isEnabled
                 }
             Divider()
+            Menu("Debug") {
+                Button("Copy Focused Window Info") {
+                    appDelegate.copyFocusedWindowDiagnostics()
+                }
+            }
+            Divider()
             Button("Quit WindowKit") {
                 NSApplication.shared.terminate(nil)
             }
@@ -201,6 +207,13 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
     private func dismissStaleGrantWarning() {
         staleGrantWindow?.close()
         staleGrantWindow = nil
+    }
+
+    func copyFocusedWindowDiagnostics() {
+        let report = FocusedWindowDiagnostics.snapshot()
+        let pb = NSPasteboard.general
+        pb.clearContents()
+        pb.setString(report, forType: .string)
     }
 
     func openAbout() {

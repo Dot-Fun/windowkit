@@ -1,17 +1,13 @@
+import AppKit
 import ApplicationServices
 import CoreGraphics
 import Foundation
 
 /// Thin wrapper around an `AXUIElement` representing a window.
-///
-/// **Coordinate convention**: AX reports and accepts window position/size
-/// in the global AX coordinate space — **top-left origin of the primary
-/// display**, y grows downward. Multi-display positions may have
-/// negative x/y for displays left-of or above the primary.
 public struct AXWindow: Equatable {
-    public let element: AXUIElement
+    let element: AXUIElement
 
-    public init(element: AXUIElement) {
+    init(element: AXUIElement) {
         self.element = element
     }
 
@@ -19,26 +15,39 @@ public struct AXWindow: Equatable {
         CFEqual(lhs.element, rhs.element)
     }
 
-    /// Focused window of the frontmost application, or `nil` if none /
-    /// no Accessibility trust.
+    /// Resolve the focused window of the frontmost application.
+    ///
+    /// Uses a multi-tier strategy because Chromium/Electron apps (Chrome,
+    /// Discord, Cursor, VSCode, Slack) frequently report focus on a deep
+    /// `AXWebArea` descendant rather than on the `AXWindow`, which makes
+    /// the naive `kAXFocusedWindowAttribute` path return something that
+    /// is not a window (or returns nothing at all).
+    ///
+    /// Order: focused → main → first-in-list. Role-checked at each step.
     public static func focusedWindow() -> AXWindow? {
-        let system = AXUIElementCreateSystemWide()
-        var appRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(
-            system, kAXFocusedApplicationAttribute as CFString, &appRef
-        ) == .success, let appRef, CFGetTypeID(appRef) == AXUIElementGetTypeID() else {
+        guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else {
             return nil
         }
-        let app = appRef as! AXUIElement
+        let app = AXUIElementCreateApplication(pid)
 
-        var winRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(
-            app, kAXFocusedWindowAttribute as CFString, &winRef
-        ) == .success, let winRef, CFGetTypeID(winRef) == AXUIElementGetTypeID() else {
-            return nil
+        if let win = copyWindow(from: app, attribute: kAXFocusedWindowAttribute as String) {
+            return win
         }
-        return AXWindow(element: winRef as! AXUIElement)
+        if let win = copyWindow(from: app, attribute: kAXMainWindowAttribute as String) {
+            return win
+        }
+        return firstWindow(from: app)
     }
+
+    /// Process ID of the app owning this window. Used to target the
+    /// Chromium enhanced-UI nudge at the right application.
+    public var ownerPid: pid_t {
+        var pid: pid_t = 0
+        AXUIElementGetPid(element, &pid)
+        return pid
+    }
+
+    // MARK: - Frame accessors
 
     /// Current frame in AX coordinates, or `nil` on failure.
     public func frame() -> CGRect? {
@@ -79,6 +88,50 @@ public struct AXWindow: Equatable {
         return SetFrameResult(positionApplied: posOK1 || posOK2, sizeApplied: sizeOK)
     }
 
+    // MARK: - Diagnostic helpers
+
+    public func stringAttribute(_ name: String) -> String? {
+        Self.copyStringAttr(element, name)
+    }
+
+    public func isAttributeSettable(_ name: String) -> Bool {
+        var settable: DarwinBoolean = false
+        guard AXUIElementIsAttributeSettable(element, name as CFString, &settable) == .success
+        else { return false }
+        return settable.boolValue
+    }
+
+    // MARK: - Window resolution helpers
+
+    private static func copyWindow(from app: AXUIElement, attribute: String) -> AXWindow? {
+        var ref: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, attribute as CFString, &ref) == .success,
+              let ref, CFGetTypeID(ref) == AXUIElementGetTypeID()
+        else { return nil }
+        let element = ref as! AXUIElement
+        // Some apps return non-window elements here (WebArea, group). Filter.
+        guard let role = copyStringAttr(element, kAXRoleAttribute as String),
+              role == kAXWindowRole as String
+        else { return nil }
+        return AXWindow(element: element)
+    }
+
+    private static func firstWindow(from app: AXUIElement) -> AXWindow? {
+        var ref: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &ref) == .success,
+              let arr = ref as? [AXUIElement], let first = arr.first
+        else { return nil }
+        return AXWindow(element: first)
+    }
+
+    private static func copyStringAttr(_ element: AXUIElement, _ attribute: String) -> String? {
+        var ref: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &ref) == .success,
+              let s = ref as? String
+        else { return nil }
+        return s
+    }
+
     // MARK: - AXValue plumbing
 
     private func copyValue<T>(attribute: String, as type: AXValueType, _: T.Type) -> T? {
@@ -88,10 +141,10 @@ public struct AXWindow: Equatable {
               CFGetTypeID(ref) == AXValueGetTypeID()
         else { return nil }
         let axValue = ref as! AXValue
-        var out = UnsafeMutablePointer<T>.allocate(capacity: 1)
-        defer { out.deallocate() }
-        guard AXValueGetValue(axValue, type, out) else { return nil }
-        return out.pointee
+        var value = UnsafeMutablePointer<T>.allocate(capacity: 1)
+        defer { value.deallocate() }
+        guard AXValueGetValue(axValue, type, value) else { return nil }
+        return value.pointee
     }
 
     private func setValue<T>(_ value: T, type: AXValueType, attribute: String) -> Bool {

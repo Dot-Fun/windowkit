@@ -114,10 +114,37 @@ public final class ActionRunner {
 
     // MARK: - Apply
 
+    /// Tolerance (AX px) within which a readback frame counts as "match".
+    /// Chromium rounds to integer pixels and occasionally adds a 1 px fudge.
+    private static let matchTolerance: CGFloat = 2.0
+
     private func apply(target: CGRect, window: AXWindow, current: CGRect) {
         guard target != current else { return }
         undo.push(UndoStack.Snapshot(frame: current))
         redoFrames.removeAll()
-        window.setFrame(target)
+
+        let result = window.setFrame(target)
+
+        // If position landed near the target, we're done. Size failures are
+        // expected on fixed-size apps; don't treat those as failures.
+        if result.positionApplied, positionMatches(window: window, target: target) {
+            return
+        }
+
+        // Chromium/Electron apps often need a one-time enhanced-UI nudge
+        // before they expose settable window attributes. Nudge + retry
+        // (only once per app per WindowKit launch).
+        let pid = window.ownerPid
+        if ChromiumNudge.nudge(pid: pid) {
+            Thread.sleep(forTimeInterval: 0.03) // let AX tree rebuild
+            window.setFrame(target)
+        }
+    }
+
+    private func positionMatches(window: AXWindow, target: CGRect) -> Bool {
+        guard let actual = window.frame() else { return false }
+        let dx = abs(actual.origin.x - target.origin.x)
+        let dy = abs(actual.origin.y - target.origin.y)
+        return dx <= Self.matchTolerance && dy <= Self.matchTolerance
     }
 }

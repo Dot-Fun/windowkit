@@ -257,7 +257,7 @@ private struct TapBehaviorCard: View {
             HStack(spacing: 12) {
                 Text("Tap window")
                     .frame(width: 100, alignment: .leading)
-                Slider(value: tapWindowBinding, in: 150...700, step: 10)
+                Slider(value: tapWindowBinding, in: Double(PreferencesStore.tapWindowMinMs)...Double(PreferencesStore.tapWindowMaxMs), step: 10)
                 Text("\(store.tapWindowMs) ms")
                     .font(.body.monospacedDigit())
                     .frame(width: 70, alignment: .trailing)

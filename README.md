@@ -109,7 +109,7 @@ All shortcuts are configurable in **Preferences → Keyboard Shortcuts** (⌘, f
 
 ### Multi-tap cycles
 
-Each 3×3 grid key starts a cycle. Tapping the same key again within the **tap window** (default 400 ms, configurable 150–700 ms in **Preferences → Shortcuts → Tap Behavior**) advances to a larger size anchored at that position. After the last step, another tap wraps back to the 1/9 cell. After the tap window elapses with no press, the counter resets and the next tap is a 1-tap again.
+Each 3×3 grid key starts a cycle. Tapping the same key again within the **tap window** (default 700 ms, configurable 150 ms – 1 s in **Preferences → Shortcuts → Tap Behavior**) advances to a larger size anchored at that position. After the last step, another tap wraps back to the 1/9 cell. After the tap window elapses with no press, the counter resets and the next tap is a 1-tap again.
 
 | Position | Keys | Cycle (1-tap → last) |
 |---|---|---|
@@ -139,6 +139,15 @@ Because this build is unsigned (and ad-hoc signatures change on every rebuild), 
 3. Add the freshly built `WindowKit.app` and enable its toggle.
 
 The onboarding window reappears whenever trust is revoked or invalidated, and hotkeys automatically disarm until trust is restored.
+
+## Known app compatibility
+
+- **Fully supported**: all native Cocoa apps (Finder, Safari, iTerm, Xcode, Terminal, Preview, Mail, Messages, etc.).
+- **Electron / Chromium apps** (Chrome, Discord, Cursor, VSCode, Slack, etc.): supported via a multi-tier window resolver and a one-time `AXEnhancedUserInterface` nudge per app per launch. The first hotkey press on such an app may feel ~30 ms slower while Chromium rebuilds its AX tree; subsequent presses are instant.
+- **Fixed-size apps** (EMEET Studio, System Settings panels, 1Password mini, Spotify mini): these will be **moved** to the target cell's origin but keep their intrinsic size — by design. No beep, no error.
+- **Apps running as root or with full-screen space privileges** (most games, some installers): unreachable via the Accessibility API. This is a macOS limitation, not a WindowKit bug.
+
+If a specific app doesn't respond, open the menubar menu → **Debug → Copy Focused Window Info** and share the clipboard contents — it contains the bundle ID, AX role/subrole, and which attributes are settable, which is enough to triage.
 
 ## Project Layout
 

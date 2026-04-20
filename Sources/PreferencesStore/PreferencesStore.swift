@@ -13,9 +13,13 @@ public final class PreferencesStore: ObservableObject {
 
     @Published public private(set) var bindings: [WindowAction: Shortcut]
 
-    @Published public var tapWindowMs: Int = 400 {
+    public static let tapWindowMinMs = 150
+    public static let tapWindowMaxMs = 1000
+    public static let tapWindowDefaultMs = 700
+
+    @Published public var tapWindowMs: Int = PreferencesStore.tapWindowDefaultMs {
         didSet {
-            let clamped = min(max(tapWindowMs, 150), 700)
+            let clamped = min(max(tapWindowMs, Self.tapWindowMinMs), Self.tapWindowMaxMs)
             if clamped != tapWindowMs {
                 tapWindowMs = clamped
                 return
@@ -30,7 +34,7 @@ public final class PreferencesStore: ObservableObject {
         self.defaults = defaults
         self.bindings = DefaultBindings.spectacle
         let stored = defaults.object(forKey: Self.tapWindowKey) as? Int
-        self.tapWindowMs = min(max(stored ?? 400, 150), 700)
+        self.tapWindowMs = min(max(stored ?? Self.tapWindowDefaultMs, Self.tapWindowMinMs), Self.tapWindowMaxMs)
         load()
     }
 

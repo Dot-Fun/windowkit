@@ -56,19 +56,24 @@ final class PreferencesStoreTests: XCTestCase {
         XCTAssertNil(store.bindings[.leftHalf])
     }
 
-    func testTapWindowMsDefaultsTo400() {
+    func testTapWindowMsDefaultsToSpec() {
         let store = PreferencesStore(defaults: isolatedDefaults())
-        XCTAssertEqual(store.tapWindowMs, 400)
+        XCTAssertEqual(store.tapWindowMs, PreferencesStore.tapWindowDefaultMs)
+        XCTAssertEqual(store.tapWindowMs, 700)
     }
 
     func testTapWindowMsClampsToBounds() {
         let store = PreferencesStore(defaults: isolatedDefaults())
         store.tapWindowMs = 50
+        XCTAssertEqual(store.tapWindowMs, PreferencesStore.tapWindowMinMs)
         XCTAssertEqual(store.tapWindowMs, 150)
         store.tapWindowMs = 9_999
-        XCTAssertEqual(store.tapWindowMs, 700)
+        XCTAssertEqual(store.tapWindowMs, PreferencesStore.tapWindowMaxMs)
+        XCTAssertEqual(store.tapWindowMs, 1000)
         store.tapWindowMs = 300
         XCTAssertEqual(store.tapWindowMs, 300)
+        store.tapWindowMs = 1000
+        XCTAssertEqual(store.tapWindowMs, 1000)
     }
 
     func testTapWindowMsPersists() {
