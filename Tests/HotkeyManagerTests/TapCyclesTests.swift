@@ -14,17 +14,25 @@ final class TapCyclesTests: XCTestCase {
         // 4-step cycle wraps to step 1 at tap 5.
         XCTAssertEqual(TapCycles.resolve(.grid3MiddleLeft, tapCount: 5), .grid3MiddleLeft)
         XCTAssertEqual(TapCycles.resolve(.grid3MiddleLeft, tapCount: 6), .firstThird)
-        // 2-step cycle wraps to step 1 at tap 3.
-        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 3), .grid3TopLeft)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 4), .topLeft)
+        // 3-step corner cycle wraps to step 1 at tap 4.
+        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 4), .grid3TopLeft)
+        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 5), .topLeft)
     }
 
-    func testCornerCyclesTwoSteps() {
+    func testCornerCyclesThreeSteps() {
+        // Top-left
         XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 1), .grid3TopLeft)
         XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 2), .topLeft)
+        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 3), .topLeftTwoThirds)
+        // Top-right
         XCTAssertEqual(TapCycles.resolve(.grid3TopRight, tapCount: 2), .topRight)
+        XCTAssertEqual(TapCycles.resolve(.grid3TopRight, tapCount: 3), .topRightTwoThirds)
+        // Bottom-left
         XCTAssertEqual(TapCycles.resolve(.grid3BottomLeft, tapCount: 2), .bottomLeft)
+        XCTAssertEqual(TapCycles.resolve(.grid3BottomLeft, tapCount: 3), .bottomLeftTwoThirds)
+        // Bottom-right
         XCTAssertEqual(TapCycles.resolve(.grid3BottomRight, tapCount: 2), .bottomRight)
+        XCTAssertEqual(TapCycles.resolve(.grid3BottomRight, tapCount: 3), .bottomRightTwoThirds)
     }
 
     func testMiddleCenterThreeStepCycle() {

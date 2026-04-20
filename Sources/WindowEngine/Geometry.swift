@@ -63,6 +63,12 @@ public enum Geometry {
         case .topTwoThirds:    return vRange(screen, startRow: 0, endRow: 2, outOf: 3)
         case .bottomTwoThirds: return vRange(screen, startRow: 1, endRow: 3, outOf: 3)
 
+        // MARK: corner 2/3 x 2/3
+        case .topLeftTwoThirds:     return gridRange(screen, startCol: 0, endCol: 2, cols: 3, startRow: 0, endRow: 2, rows: 3)
+        case .topRightTwoThirds:    return gridRange(screen, startCol: 1, endCol: 3, cols: 3, startRow: 0, endRow: 2, rows: 3)
+        case .bottomLeftTwoThirds:  return gridRange(screen, startCol: 0, endCol: 2, cols: 3, startRow: 1, endRow: 3, rows: 3)
+        case .bottomRightTwoThirds: return gridRange(screen, startCol: 1, endCol: 3, cols: 3, startRow: 1, endRow: 3, rows: 3)
+
         // MARK: sixths (2 rows x 3 cols)
         case .topLeftSixth:      return cell(screen, col: 0, row: 0, cols: 3, rows: 2)
         case .topCenterSixth:    return cell(screen, col: 1, row: 0, cols: 3, rows: 2)
@@ -167,6 +173,23 @@ public enum Geometry {
             x: screen.minX,
             y: screen.minY + ys[startRow],
             width: screen.width,
+            height: ys[endRow] - ys[startRow]
+        )
+    }
+
+    /// 2-D sub-rect: columns `[startCol, endCol)` × rows `[startRow, endRow)`
+    /// of an `cols × rows` grid of equal cells.
+    static func gridRange(
+        _ screen: CGRect,
+        startCol: Int, endCol: Int, cols: Int,
+        startRow: Int, endRow: Int, rows: Int
+    ) -> CGRect {
+        let xs = boundaries(length: screen.width, count: cols)
+        let ys = boundaries(length: screen.height, count: rows)
+        return CGRect(
+            x: screen.minX + xs[startCol],
+            y: screen.minY + ys[startRow],
+            width: xs[endCol] - xs[startCol],
             height: ys[endRow] - ys[startRow]
         )
     }

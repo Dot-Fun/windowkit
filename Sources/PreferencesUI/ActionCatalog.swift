@@ -93,6 +93,10 @@ public enum ActionCatalog {
         case .bottomThird:       return "Bottom Third"
         case .topTwoThirds:      return "Top Two Thirds"
         case .bottomTwoThirds:   return "Bottom Two Thirds"
+        case .topLeftTwoThirds:     return "Top Left 2/3 × 2/3"
+        case .topRightTwoThirds:    return "Top Right 2/3 × 2/3"
+        case .bottomLeftTwoThirds:  return "Bottom Left 2/3 × 2/3"
+        case .bottomRightTwoThirds: return "Bottom Right 2/3 × 2/3"
         case .topLeftSixth:      return "Top Left Sixth"
         case .topCenterSixth:    return "Top Center Sixth"
         case .topRightSixth:     return "Top Right Sixth"
@@ -125,11 +129,11 @@ public enum ActionCatalog {
     public static func cycleSteps(for action: WindowAction) -> [String]? {
         switch action {
         case .grid3TopLeft:
-            return ["1× top-left 1/9", "2× top-left 1/4"]
+            return ["1× top-left 1/9", "2× top-left 1/4", "3× top-left 2/3 × 2/3"]
         case .grid3TopCenter:
             return ["1× top-center 1/9", "2× top 1/3", "3× top 1/2", "4× top 2/3"]
         case .grid3TopRight:
-            return ["1× top-right 1/9", "2× top-right 1/4"]
+            return ["1× top-right 1/9", "2× top-right 1/4", "3× top-right 2/3 × 2/3"]
         case .grid3MiddleLeft:
             return ["1× middle-left 1/9", "2× left 1/3", "3× left 1/2", "4× left 2/3"]
         case .grid3MiddleCenter:
@@ -137,11 +141,11 @@ public enum ActionCatalog {
         case .grid3MiddleRight:
             return ["1× middle-right 1/9", "2× right 1/3", "3× right 1/2", "4× right 2/3"]
         case .grid3BottomLeft:
-            return ["1× bottom-left 1/9", "2× bottom-left 1/4"]
+            return ["1× bottom-left 1/9", "2× bottom-left 1/4", "3× bottom-left 2/3 × 2/3"]
         case .grid3BottomCenter:
             return ["1× bottom-center 1/9", "2× bottom 1/3", "3× bottom 1/2", "4× bottom 2/3"]
         case .grid3BottomRight:
-            return ["1× bottom-right 1/9", "2× bottom-right 1/4"]
+            return ["1× bottom-right 1/9", "2× bottom-right 1/4", "3× bottom-right 2/3 × 2/3"]
         default:
             return nil
         }

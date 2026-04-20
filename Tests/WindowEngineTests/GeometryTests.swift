@@ -190,6 +190,45 @@ final class GeometryTests: XCTestCase {
         XCTAssertEqual(bottom.maxY, square.maxY)
     }
 
+    // MARK: - Corner 2/3 x 2/3
+
+    func testCornerTwoThirdsOn1920x1080() {
+        let screen = CGRect(x: 0, y: 0, width: 1920, height: 1080)
+        // Grid boundaries at 0, 640, 1280, 1920 (cols) and 0, 360, 720, 1080 (rows).
+
+        let tl = Geometry.targetFrame(for: .topLeftTwoThirds, screen: screen, current: .zero)!
+        XCTAssertEqual(tl, CGRect(x: 0, y: 0, width: 1280, height: 720))
+
+        let tr = Geometry.targetFrame(for: .topRightTwoThirds, screen: screen, current: .zero)!
+        XCTAssertEqual(tr, CGRect(x: 640, y: 0, width: 1280, height: 720))
+
+        let bl = Geometry.targetFrame(for: .bottomLeftTwoThirds, screen: screen, current: .zero)!
+        XCTAssertEqual(bl, CGRect(x: 0, y: 360, width: 1280, height: 720))
+
+        let br = Geometry.targetFrame(for: .bottomRightTwoThirds, screen: screen, current: .zero)!
+        XCTAssertEqual(br, CGRect(x: 640, y: 360, width: 1280, height: 720))
+    }
+
+    func testCornerTwoThirdsAnchoredAtCorners() {
+        let square = CGRect(x: 0, y: 0, width: 999, height: 999)
+        // Each corner's 2/3 × 2/3 should touch its own corner of the screen.
+        let tl = Geometry.targetFrame(for: .topLeftTwoThirds, screen: square, current: .zero)!
+        XCTAssertEqual(tl.minX, square.minX)
+        XCTAssertEqual(tl.minY, square.minY)
+
+        let tr = Geometry.targetFrame(for: .topRightTwoThirds, screen: square, current: .zero)!
+        XCTAssertEqual(tr.maxX, square.maxX)
+        XCTAssertEqual(tr.minY, square.minY)
+
+        let bl = Geometry.targetFrame(for: .bottomLeftTwoThirds, screen: square, current: .zero)!
+        XCTAssertEqual(bl.minX, square.minX)
+        XCTAssertEqual(bl.maxY, square.maxY)
+
+        let br = Geometry.targetFrame(for: .bottomRightTwoThirds, screen: square, current: .zero)!
+        XCTAssertEqual(br.maxX, square.maxX)
+        XCTAssertEqual(br.maxY, square.maxY)
+    }
+
     // MARK: - Sixths (2 rows x 3 cols)
 
     func testSixthsTileExactly() {

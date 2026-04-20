@@ -10,6 +10,25 @@ A native macOS Spectacle-style window manager by [dotfun](https://dotfun.co). Me
 
 **License**: Apache 2.0 — see [`LICENSE`](LICENSE). Provided "as is", without warranty of any kind, express or implied. The authors and dotfun are not liable for any damages arising from use of this software.
 
+## Install (prebuilt)
+
+1. Grab the latest **WindowKit-x.y.z.zip** from [Releases](https://github.com/Dot-Fun/windowkit/releases).
+2. Unzip, drag **WindowKit.app** into **/Applications**.
+3. Launch it. The menubar icon (orange 3×3 grid on dotfun orange) appears.
+4. On first launch Gatekeeper will complain — the build is unsigned. Right-click the app → **Open** → **Open Anyway**, or run:
+   ```bash
+   xattr -dr com.apple.quarantine /Applications/WindowKit.app
+   ```
+5. Grant Accessibility when prompted (System Settings → Privacy & Security → Accessibility → toggle WindowKit on).
+
+### Menubar menu
+
+- **Preferences…** — rebind shortcuts, adjust the multi-tap window (150 ms – 1 s, default 700 ms)
+- **About WindowKit** — logo + version
+- **Launch at Login** — toggle auto-start with macOS
+- **Debug → Copy Focused Window Info** — copies bundle ID / AX role / settable flags to the clipboard for bug reports
+- **Quit WindowKit** — ⌘Q
+
 ## Requirements
 
 - macOS 14+
@@ -119,7 +138,7 @@ Each 3×3 grid key starts a cycle. Tapping the same key again within the **tap w
 
 | Position | Keys | Cycle (1-tap → last) |
 |---|---|---|
-| Corners | U, O, M, . | 1/9 cell → matching quadrant |
+| Corners | U, O, M, . | 1/9 cell → matching quadrant (1/2 × 1/2) → 2/3 × 2/3 anchored at that corner |
 | Top / bottom edges | I, , | 1/9 cell → top/bottom 1/3 band → top/bottom 1/2 → top/bottom 2/3 |
 | Side edges | J, L | 1/9 cell → left/right 1/3 column → left/right 1/2 → left/right 2/3 |
 | Center | K | 1/9 cell → 1/3 center column → fullscreen |

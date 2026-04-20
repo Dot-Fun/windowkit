@@ -17,6 +17,10 @@ public enum WindowAction: String, Codable, CaseIterable, Sendable {
     case topThird, bottomThird
     case topTwoThirds, bottomTwoThirds
 
+    // Corner 2/3 × 2/3 (2/3 width × 2/3 height, anchored to that corner)
+    case topLeftTwoThirds, topRightTwoThirds
+    case bottomLeftTwoThirds, bottomRightTwoThirds
+
     // Sixths (2 rows x 3 cols)
     case topLeftSixth, topCenterSixth, topRightSixth
     case bottomLeftSixth, bottomCenterSixth, bottomRightSixth
