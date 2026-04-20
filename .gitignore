@@ -1,8 +1,26 @@
+# macOS
 .DS_Store
+
+# SwiftPM
 .build/
-build/
 .swiftpm/
+Package.resolved
+
+# Xcode
 DerivedData/
 *.xcodeproj/xcuserdata/
 *.xcworkspace/xcuserdata/
-Package.resolved
+*.xcuserstate
+
+# Release artifacts
+build/
+dist/
+*.zip
+*.dmg
+
+# Stray bin from redirected output
+/test
+
+# Local environment
+.env
+.env.local
