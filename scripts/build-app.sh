@@ -29,6 +29,10 @@ if [[ -d "$ROOT/App/Assets.xcassets" ]]; then
   cp -R "$ROOT/App/Assets.xcassets" "$CONTENTS/Resources/"
 fi
 
+if [[ -f "$ROOT/App/AppIcon.icns" ]]; then
+  cp "$ROOT/App/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
+fi
+
 # Ad-hoc sign so Gatekeeper and the AX subsystem get a stable code identity
 # (still unsigned in the distribution sense; re-granting AX per rebuild still applies).
 codesign --force --sign - "$APP" >/dev/null 2>&1 || true

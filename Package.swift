@@ -40,8 +40,9 @@ let package = Package(
         ),
         .target(
             name: "PreferencesUI",
-            dependencies: ["PreferencesStore", "HotkeyManager", "WindowEngine"],
-            path: "Sources/PreferencesUI"
+            dependencies: ["PreferencesStore", "HotkeyManager", "WindowEngine", "PermissionsCoordinator"],
+            path: "Sources/PreferencesUI",
+            resources: [.process("Resources")]
         ),
         .target(name: "PermissionsCoordinator", path: "Sources/PermissionsCoordinator"),
         .target(

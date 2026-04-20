@@ -1,6 +1,8 @@
 # WindowKit
 
-A native macOS Spectacle-style window manager. Menubar utility that snaps the focused window to halves, quadrants, thirds, sixths, a 3×3 spatial grid, fullscreen, and across displays via global hotkeys.
+A native macOS Spectacle-style window manager by [dotfun](https://dotfun.co). Menubar utility that snaps the focused window to halves, quadrants, thirds, sixths, a 3×3 spatial grid, fullscreen, and across displays via global hotkeys.
+
+**License**: Apache 2.0 — see [`LICENSE`](LICENSE). Provided "as is", without warranty of any kind, express or implied. The authors and dotfun are not liable for any damages arising from use of this software.
 
 ## Requirements
 

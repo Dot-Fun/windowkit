@@ -1,3 +1,4 @@
+import AppKit
 import PreferencesStore
 import SwiftUI
 import WindowEngine
@@ -35,12 +36,34 @@ public struct PreferencesWindow: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Keyboard Shortcuts")
-                .font(.title2.weight(.semibold))
-            Text("Click a shortcut field, then press the key combination you want. Press ⌫ to clear, ⎋ to cancel.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
+        HStack(alignment: .center, spacing: 14) {
+            DotfunLogo(height: 28)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Keyboard Shortcuts")
+                    .font(.title2.weight(.semibold))
+                Text("Click a shortcut field, then press the key combination you want. Press ⌫ to clear, ⎋ to cancel.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+}
+
+struct DotfunLogo: View {
+    let height: CGFloat
+
+    var body: some View {
+        if let url = Bundle.module.url(forResource: "DotfunLogo", withExtension: "png"),
+           let nsImage = NSImage(contentsOf: url) {
+            Image(nsImage: nsImage)
+                .resizable()
+                .scaledToFit()
+                .frame(height: height)
+                .accessibilityLabel("dotfun")
+        } else {
+            Text("dotfun")
+                .font(.system(size: height * 0.8, weight: .heavy))
         }
     }
 }
