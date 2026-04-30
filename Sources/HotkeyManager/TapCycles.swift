@@ -6,13 +6,13 @@ import WindowEngine
 public enum TapCycles {
     public static let `default`: [WindowAction: [WindowAction]] = [
         .grid3TopLeft:      [.topLeft, .grid3TopLeft, .topLeftTwoThirds],
-        .grid3TopCenter:    [.topHalf, .topThird, .grid3TopCenter, .topTwoThirds],
+        .grid3TopCenter:    [.topHalf, .topThird, .topTwoThirds],
         .grid3TopRight:     [.topRight, .grid3TopRight, .topRightTwoThirds],
-        .grid3MiddleLeft:   [.leftHalf, .firstThird, .grid3MiddleLeft, .firstTwoThirds],
+        .grid3MiddleLeft:   [.leftHalf, .firstThird, .firstTwoThirds],
         .grid3MiddleCenter: [.fullscreen, .grid3MiddleCenter, .centerThird],
-        .grid3MiddleRight:  [.rightHalf, .lastThird, .grid3MiddleRight, .lastTwoThirds],
+        .grid3MiddleRight:  [.rightHalf, .lastThird, .lastTwoThirds],
         .grid3BottomLeft:   [.bottomLeft, .grid3BottomLeft, .bottomLeftTwoThirds],
-        .grid3BottomCenter: [.bottomHalf, .bottomThird, .grid3BottomCenter, .bottomTwoThirds],
+        .grid3BottomCenter: [.bottomHalf, .bottomThird, .bottomTwoThirds],
         .grid3BottomRight:  [.bottomRight, .grid3BottomRight, .bottomRightTwoThirds],
     ]
 
