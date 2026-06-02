@@ -106,6 +106,7 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
     private var aboutWindow: NSWindow?
     private var cancellables = Set<AnyCancellable>()
     private var hotkeysArmed = false
+    private var staleConfirmation: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         hotkeys.onAction = { [weak self] action, count in
@@ -129,17 +130,21 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
                 guard let self else { return }
                 switch state {
                 case .functional:
+                    self.cancelStaleConfirmation()
                     self.armHotkeys()
                     self.dismissOnboarding()
                     self.dismissStaleGrantWarning()
                 case .denied:
+                    self.cancelStaleConfirmation()
                     self.disarmHotkeys()
                     self.dismissStaleGrantWarning()
                     self.showOnboarding()
                 case .stale:
-                    self.disarmHotkeys()
-                    self.dismissOnboarding()
-                    self.showStaleGrantWarning()
+                    // A single .stale reading is usually transient (a focused
+                    // app momentarily failing the probe). Confirm it persists
+                    // before disarming hotkeys or showing the warning, so we
+                    // never flap the window or kill hotkeys on a blip.
+                    self.confirmStaleThenReact()
                 }
             }
             .store(in: &cancellables)
@@ -155,6 +160,29 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
     private func disarmHotkeys() {
         hotkeys.clear()
         hotkeysArmed = false
+    }
+
+    // MARK: - Stale-grant confirmation
+
+    /// Wait out a confirmation window, then re-check live trust state; only
+    /// react if it's *still* stale. Cancels itself if a `.functional`/`.denied`
+    /// reading arrives first (see `cancelStaleConfirmation`).
+    private func confirmStaleThenReact() {
+        guard staleConfirmation == nil else { return } // already confirming
+        staleConfirmation = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(2.5))
+            guard let self, !Task.isCancelled else { return }
+            self.staleConfirmation = nil
+            guard AccessibilityTrust.currentState() == .stale else { return }
+            self.disarmHotkeys()
+            self.dismissOnboarding()
+            self.showStaleGrantWarning()
+        }
+    }
+
+    private func cancelStaleConfirmation() {
+        staleConfirmation?.cancel()
+        staleConfirmation = nil
     }
 
     // MARK: - Windows

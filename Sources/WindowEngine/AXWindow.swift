@@ -3,6 +3,44 @@ import ApplicationServices
 import CoreGraphics
 import Foundation
 
+/// AX attribute names we read/write. Centralized so a typo can't silently
+/// disable Electron handling — the original Discord bug came from leaning on
+/// the wrong attribute (`AXEnhancedUserInterface` instead of
+/// `AXManualAccessibility`).
+public enum AXAttr {
+    /// VoiceOver's attribute. When on, AppKit applies AX position/size writes
+    /// asynchronously/animated/ignored, which breaks keyboard window managers.
+    public static let enhancedUserInterface = "AXEnhancedUserInterface"
+    /// Chromium/Electron's opt-in for non-VoiceOver clients — wakes the a11y
+    /// tree with no window-positioning side-effect.
+    public static let manualAccessibility = "AXManualAccessibility"
+}
+
+/// Steps of the "neutralize AXEnhancedUserInterface around a frame write"
+/// sequence (Rectangle's technique). Modeled as a value so the policy and its
+/// ordering are unit-testable without touching the live AX API.
+public enum FrameWriteStep: Equatable {
+    case disableEnhancedUI
+    case writeFrame
+    case restoreEnhancedUI
+}
+
+/// Pure decisions for the enhanced-UI dance. Driven by `AXWindow.setFrame`.
+public enum EnhancedUIPolicy {
+    /// Only dance when EUI is actually on. `nil` (attribute absent) and `false`
+    /// both mean "leave it alone" — normal apps take the no-op path.
+    public static func shouldToggle(currentlyEnabled: Bool?) -> Bool {
+        currentlyEnabled == true
+    }
+
+    /// Ordered steps for a frame write given the app's current EUI state.
+    public static func framePlan(euiEnabled: Bool) -> [FrameWriteStep] {
+        euiEnabled
+            ? [.disableEnhancedUI, .writeFrame, .restoreEnhancedUI]
+            : [.writeFrame]
+    }
+}
+
 /// Thin wrapper around an `AXUIElement` representing a window.
 public struct AXWindow: Equatable {
     let element: AXUIElement
@@ -39,8 +77,8 @@ public struct AXWindow: Equatable {
         return firstWindow(from: app)
     }
 
-    /// Process ID of the app owning this window. Used to target the
-    /// Chromium enhanced-UI nudge at the right application.
+    /// Process ID of the app owning this window. Used to reach the owning
+    /// application element (enhanced-UI toggle, Electron a11y wake).
     public var ownerPid: pid_t {
         var pid: pid_t = 0
         AXUIElementGetPid(element, &pid)
@@ -73,19 +111,64 @@ public struct AXWindow: Equatable {
 
     /// Set the window's frame in AX coordinates.
     ///
-    /// We write position twice (position → size → position) because
-    /// some apps that clamp size also shift origin as a side effect;
-    /// the second position write pins the origin back where we want
-    /// it. `sizeApplied == false` is legitimate and the caller decides
-    /// what to do with it.
+    /// If the owning app has `AXEnhancedUserInterface` on (VoiceOver users, or
+    /// Electron/Chromium apps that turned it on), AppKit applies position/size
+    /// writes asynchronously/animated/ignored and the window won't land where
+    /// we ask. So we follow Rectangle's technique: disable it, write, restore.
+    /// Normal apps (attribute absent or false) take the plain write path with
+    /// zero behavior change. The plan is restored on every path because the
+    /// `.restoreEnhancedUI` step is the last element of `framePlan`.
     @discardableResult
     public func setFrame(_ frame: CGRect) -> SetFrameResult {
+        let euiOn = EnhancedUIPolicy.shouldToggle(currentlyEnabled: enhancedUserInterfaceEnabled())
+        var result = SetFrameResult(positionApplied: false, sizeApplied: false)
+        for step in EnhancedUIPolicy.framePlan(euiEnabled: euiOn) {
+            switch step {
+            case .disableEnhancedUI: setEnhancedUserInterface(false)
+            case .writeFrame: result = writeFrame(frame)
+            case .restoreEnhancedUI: setEnhancedUserInterface(true)
+            }
+        }
+        return result
+    }
+
+    /// The actual frame write. Position twice (position → size → position)
+    /// because some apps that clamp size also shift origin as a side effect;
+    /// the second position write pins the origin back. `sizeApplied == false`
+    /// is legitimate and the caller decides what to do with it.
+    private func writeFrame(_ frame: CGRect) -> SetFrameResult {
         let pt = CGPoint(x: frame.origin.x, y: frame.origin.y)
         let posOK1 = setValue(pt, type: .cgPoint, attribute: kAXPositionAttribute)
         let sizeOK = setValue(CGSize(width: frame.width, height: frame.height),
                               type: .cgSize, attribute: kAXSizeAttribute)
         let posOK2 = setValue(pt, type: .cgPoint, attribute: kAXPositionAttribute)
         return SetFrameResult(positionApplied: posOK1 || posOK2, sizeApplied: sizeOK)
+    }
+
+    // MARK: - Enhanced-UI (app element)
+
+    private func appElement() -> AXUIElement {
+        AXUIElementCreateApplication(ownerPid)
+    }
+
+    /// `AXEnhancedUserInterface` on the owning app, or `nil` when the attribute
+    /// is absent/unreadable (most plain AppKit apps).
+    public func enhancedUserInterfaceEnabled() -> Bool? {
+        var ref: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(
+            appElement(), AXAttr.enhancedUserInterface as CFString, &ref) == .success,
+            let ref
+        else { return nil }
+        return ref as? Bool
+    }
+
+    @discardableResult
+    public func setEnhancedUserInterface(_ enabled: Bool) -> Bool {
+        AXUIElementSetAttributeValue(
+            appElement(),
+            AXAttr.enhancedUserInterface as CFString,
+            enabled ? kCFBooleanTrue : kCFBooleanFalse
+        ) == .success
     }
 
     // MARK: - Diagnostic helpers

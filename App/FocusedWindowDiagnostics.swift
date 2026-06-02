@@ -22,7 +22,7 @@ enum FocusedWindowDiagnostics {
             bundleID: \(bundleID)
             pid: \(pid)
             window: <none — AXWindow.focusedWindow() returned nil>
-            nudged: \(ChromiumNudge.hasNudged(pid: pid))
+            electronWoken: \(ElectronAccessibility.hasWoken(pid: pid))
             """
         }
 
@@ -32,6 +32,7 @@ enum FocusedWindowDiagnostics {
         let frame = window.frame() ?? .zero
         let posSettable = window.isAttributeSettable(kAXPositionAttribute as String)
         let sizeSettable = window.isAttributeSettable(kAXSizeAttribute as String)
+        let euiText = window.enhancedUserInterfaceEnabled().map { $0 ? "true" : "false" } ?? "absent"
 
         return """
         app: \(appName)
@@ -43,7 +44,8 @@ enum FocusedWindowDiagnostics {
         position: (\(Int(frame.origin.x)), \(Int(frame.origin.y)))
         size: (\(Int(frame.width)), \(Int(frame.height)))
         settable: {pos: \(posSettable), size: \(sizeSettable)}
-        chromiumNudged: \(ChromiumNudge.hasNudged(pid: pid))
+        enhancedUserInterface: \(euiText)
+        electronWoken: \(ElectronAccessibility.hasWoken(pid: pid))
         """
     }
 }

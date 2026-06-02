@@ -264,6 +264,9 @@ Unsigned local build. Not notarized. See unsigned-build caveat above.
 
 ## Release history
 
+- **v0.2.7** — Reliable Discord/Electron window management: replaced the permanent `AXEnhancedUserInterface` nudge (which actually *breaks* positioning — it's VoiceOver's attribute) with Rectangle's disable-around-the-write technique, and wakes Chromium's a11y tree via the side-effect-free `AXManualAccessibility`. Also fixed a false "Accessibility grant is out of date" warning that flapped (and disarmed hotkeys) whenever a busy app like Discord-in-a-call was focused — the trust canary no longer treats `kAXErrorCannotComplete` as a dead grant.
+- **v0.2.6** — Simplified edge tap cycles.
+- **v0.2.5** — Big→small tap ordering; GitHub update checker.
 - **v0.2.4** — Corner keys (U, O, M, .) gain a 3rd tap: 2/3 × 2/3 in that corner.
 - **v0.2.3** — `⌘⌥K` cycle adds a 1/3-wide center column between the 1/9 cell and fullscreen.
 - **v0.2.2** — Works with Chromium/Electron apps (Chrome, Discord, Cursor, VSCode, Slack) via a one-time `AXEnhancedUserInterface` nudge. Tap window default raised to 700 ms; slider ceiling raised to 1 s.

@@ -73,5 +73,10 @@ let package = Package(
             dependencies: ["UpdateChecker"],
             path: "Tests/UpdateCheckerTests"
         ),
+        .testTarget(
+            name: "PermissionsCoordinatorTests",
+            dependencies: ["PermissionsCoordinator"],
+            path: "Tests/PermissionsCoordinatorTests"
+        ),
     ]
 )

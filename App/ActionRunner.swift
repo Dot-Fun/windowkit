@@ -38,11 +38,27 @@ public final class ActionRunner {
         }
     }
 
+    // MARK: - Window resolution
+
+    /// Resolve the focused window, giving a Chromium/Electron app that hasn't
+    /// exposed a window yet one wake-and-retry before giving up. Discord et al.
+    /// build only a minimal AX tree until `AXManualAccessibility` is set, so the
+    /// very first lookup can return nil; waking the tree makes the window appear
+    /// (without the positioning side-effect of `AXEnhancedUserInterface`).
+    private func resolveFocusedWindow() -> AXWindow? {
+        if let window = AXWindow.focusedWindow() { return window }
+        guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier,
+              ElectronAccessibility.wake(pid: pid)
+        else { return nil }
+        Thread.sleep(forTimeInterval: 0.05) // let the a11y tree appear
+        return AXWindow.focusedWindow()
+    }
+
     // MARK: - Geometry actions
 
     private func performGeometry(_ action: WindowAction) {
         guard
-            let window = AXWindow.focusedWindow(),
+            let window = resolveFocusedWindow(),
             let current = window.frame(),
             let screen = ScreenResolver.screen(containing: current)
         else { return }
@@ -61,7 +77,7 @@ public final class ActionRunner {
 
     private func moveToAdjacentDisplay(next: Bool) {
         guard
-            let window = AXWindow.focusedWindow(),
+            let window = resolveFocusedWindow(),
             let current = window.frame(),
             let currentScreen = ScreenResolver.screen(containing: current),
             let targetScreen = next
@@ -94,7 +110,7 @@ public final class ActionRunner {
 
     private func performUndo() {
         guard
-            let window = AXWindow.focusedWindow(),
+            let window = resolveFocusedWindow(),
             let current = window.frame(),
             let snap = undo.pop()
         else { return }
@@ -104,7 +120,7 @@ public final class ActionRunner {
 
     private func performRedo() {
         guard
-            let window = AXWindow.focusedWindow(),
+            let window = resolveFocusedWindow(),
             let current = window.frame(),
             let next = redoFrames.popLast()
         else { return }
@@ -131,14 +147,10 @@ public final class ActionRunner {
             return
         }
 
-        // Chromium/Electron apps often need a one-time enhanced-UI nudge
-        // before they expose settable window attributes. Nudge + retry
-        // (only once per app per WindowKit launch).
-        let pid = window.ownerPid
-        if ChromiumNudge.nudge(pid: pid) {
-            Thread.sleep(forTimeInterval: 0.03) // let AX tree rebuild
-            window.setFrame(target)
-        }
+        // One plain retry for transient races (e.g. a window mid-animation).
+        // Electron positioning is handled inside setFrame, which neutralizes
+        // AXEnhancedUserInterface around the write — no nudge needed here.
+        window.setFrame(target)
     }
 
     private func positionMatches(window: AXWindow, target: CGRect) -> Bool {
