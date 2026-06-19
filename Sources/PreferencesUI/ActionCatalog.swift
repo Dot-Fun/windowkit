@@ -48,13 +48,9 @@ public enum ActionCatalog {
         ),
         ActionGroup(
             id: "grid3",
-            title: "3×3 Grid",
-            subtitle: "Spatial layout: U/I/O · J/K/L · M/,/.",
-            actions: [
-                .grid3TopLeft, .grid3TopCenter, .grid3TopRight,
-                .grid3MiddleLeft, .grid3MiddleCenter, .grid3MiddleRight,
-                .grid3BottomLeft, .grid3BottomCenter, .grid3BottomRight,
-            ],
+            title: "Numpad Grid",
+            subtitle: "Hold ⌃⌥⌘, tap cells to place windows",
+            actions: [],
             showsGridDiagram: true
         ),
         ActionGroup(
@@ -103,15 +99,15 @@ public enum ActionCatalog {
         case .bottomLeftSixth:   return "Bottom Left Sixth"
         case .bottomCenterSixth: return "Bottom Center Sixth"
         case .bottomRightSixth:  return "Bottom Right Sixth"
-        case .grid3TopLeft:      return "Grid · Top Left (U)"
-        case .grid3TopCenter:    return "Grid · Top Center (I)"
-        case .grid3TopRight:     return "Grid · Top Right (O)"
-        case .grid3MiddleLeft:   return "Grid · Middle Left (J)"
-        case .grid3MiddleCenter: return "Grid · Middle Center (K)"
-        case .grid3MiddleRight:  return "Grid · Middle Right (L)"
-        case .grid3BottomLeft:   return "Grid · Bottom Left (M)"
-        case .grid3BottomCenter: return "Grid · Bottom Center (,)"
-        case .grid3BottomRight:  return "Grid · Bottom Right (.)"
+        case .grid3TopLeft:      return "Grid · Top Left (Num 7)"
+        case .grid3TopCenter:    return "Grid · Top Center (Num 8)"
+        case .grid3TopRight:     return "Grid · Top Right (Num 9)"
+        case .grid3MiddleLeft:   return "Grid · Middle Left (Num 4)"
+        case .grid3MiddleCenter: return "Grid · Middle Center (Num 5)"
+        case .grid3MiddleRight:  return "Grid · Middle Right (Num 6)"
+        case .grid3BottomLeft:   return "Grid · Bottom Left (Num 1)"
+        case .grid3BottomCenter: return "Grid · Bottom Center (Num 2)"
+        case .grid3BottomRight:  return "Grid · Bottom Right (Num 3)"
         case .fullscreen:        return "Fullscreen"
         case .almostMaximize:    return "Almost Maximize"
         case .center:            return "Center on Screen"

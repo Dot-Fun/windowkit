@@ -3,7 +3,6 @@ import Carbon.HIToolbox
 import WindowEngine
 
 public enum DefaultBindings {
-    private static let cmdOpt: UInt32 = UInt32(cmdKey | optionKey)
     private static let ctrlOpt: UInt32 = UInt32(controlKey | optionKey)
     private static let ctrlOptCmd: UInt32 = UInt32(controlKey | optionKey | cmdKey)
     private static let ctrlOptShift: UInt32 = UInt32(controlKey | optionKey | shiftKey)
@@ -45,15 +44,10 @@ public enum DefaultBindings {
         .nextDisplay:     sc(kVK_ANSI_RightBracket, ctrlOptCmd),
         .previousDisplay: sc(kVK_ANSI_LeftBracket,  ctrlOptCmd),
 
-        // 3x3 spatial grid: ⌘⌥ + U/I/O, J/K/L, M/,/.
-        .grid3TopLeft:      sc(kVK_ANSI_U,      cmdOpt),
-        .grid3TopCenter:    sc(kVK_ANSI_I,      cmdOpt),
-        .grid3TopRight:     sc(kVK_ANSI_O,      cmdOpt),
-        .grid3MiddleLeft:   sc(kVK_ANSI_J,      cmdOpt),
-        .grid3MiddleCenter: sc(kVK_ANSI_K,      cmdOpt),
-        .grid3MiddleRight:  sc(kVK_ANSI_L,      cmdOpt),
-        .grid3BottomLeft:   sc(kVK_ANSI_M,      cmdOpt),
-        .grid3BottomCenter: sc(kVK_ANSI_Comma,  cmdOpt),
-        .grid3BottomRight:  sc(kVK_ANSI_Period, cmdOpt),
+        // NOTE: the 3×3 grid (⌃⌥⌘ + numpad) is no longer a set of discrete
+        // hotkeys. The numeric keypad now drives the numpad *sequence* language
+        // (see HotkeyManager.armNumpadSequence / NumpadRegionResolver), where a
+        // sequence of taps describes any region. So there are no grid3* bindings
+        // here — registering them would collide with the sequence keys.
     ]
 }

@@ -26,8 +26,8 @@
 WindowKit is a lightweight **menubar app for macOS** that snaps the focused window to halves, quadrants, thirds, sixths, a 3×3 spatial grid, or fullscreen — all with keyboard shortcuts. If you've used [Spectacle](https://github.com/eczarny/spectacle), [Rectangle](https://rectangleapp.com), [Magnet](https://magnet.crowdcafe.com), [BetterSnapTool](https://folivora.ai/bettersnaptool), or [Moom](https://manytricks.com/moom/), WindowKit will feel familiar — with a spatial-grid twist that is unique to it.
 
 - **Free & open source** — Apache 2.0 licensed, no paywall, no telemetry, no account required.
-- **3×3 spatial grid** — `U / I / O`, `J / K / L`, `M / , / .` map to the 9 screen positions. The keys' physical layout *is* the layout of the snap targets.
-- **Multi-tap cycles** — tap the same shortcut twice/thrice/four times to progressively enlarge the window at that anchor. `⌘⌥I` once = top-center 1/9; twice = top 1/3; three times = top 1/2; four times = top 2/3.
+- **3×3 spatial grid** — the numeric keypad `7 / 8 / 9`, `4 / 5 / 6`, `1 / 2 / 3` maps to the 9 screen positions. The keys' physical layout *is* the layout of the snap targets.
+- **Multi-tap cycles** — tap the same shortcut twice/thrice/four times to progressively enlarge the window at that anchor. `⌃⌥⌘8` once = top-center 1/9; twice = top 1/3; three times = top 1/2; four times = top 2/3.
 - **Apple Silicon native** — arm64 build for M1 / M2 / M3 / M4 Macs on macOS 14 Sonoma or later.
 - **Works with Electron apps** — Chrome, Discord, Cursor, VSCode, Slack. A one-time `AXEnhancedUserInterface` nudge per app per launch handles Chromium's usual Accessibility API quirks.
 - **Dock-aware placement** — windows never cover a pinned Dock. Auto-hide Dock is handled the way macOS expects.
@@ -41,7 +41,7 @@ WindowKit is a lightweight **menubar app for macOS** that snaps the focused wind
 | Open source | ✅ Apache 2.0 | ✅ (archived 2017) | ✅ MIT | ❌ | ❌ |
 | Halves / quadrants via keyboard | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Thirds / sixths / 2/3 bands | ✅ | ➖ limited | ✅ | ✅ | ✅ |
-| **Spatial 3×3 grid** (U/I/O, J/K/L, M/,/.) | ✅ | ❌ | ❌ | ❌ | ➖ custom grid |
+| **Spatial 3×3 grid** (numpad 7/8/9, 4/5/6, 1/2/3) | ✅ | ❌ | ❌ | ❌ | ➖ custom grid |
 | **Multi-tap cycles** | ✅ | ❌ | ➖ repeat-resize | ❌ | ❌ |
 | Drag-to-snap | ❌ | ❌ | ✅ | ✅ | ✅ |
 | App-specific rules | ❌ | ❌ | ➖ | ❌ | ✅ |
@@ -132,26 +132,26 @@ Legend: ⌃ = Control, ⌥ = Option, ⌘ = Command, ⇧ = Shift.
 | Center third | ⌃⌥⌘ ↑ |
 | Last third | ⌃⌥⌘ → |
 
-### 3×3 Spatial Grid (⌘⌥ + key)
-Keys mirror the cell's on-screen position:
+### 3×3 Spatial Grid (⌃⌥⌘ + numpad)
+Numpad keys mirror the cell's on-screen position:
 
 ```
-U I O
-J K L
-M , .
+7 8 9
+4 5 6
+1 2 3
 ```
 
 | Action | Shortcut |
 |---|---|
-| Top-left | ⌘⌥ U |
-| Top-center | ⌘⌥ I |
-| Top-right | ⌘⌥ O |
-| Middle-left | ⌘⌥ J |
-| Middle-center | ⌘⌥ K |
-| Middle-right | ⌘⌥ L |
-| Bottom-left | ⌘⌥ M |
-| Bottom-center | ⌘⌥ , |
-| Bottom-right | ⌘⌥ . |
+| Top-left | ⌃⌥⌘ Num 7 |
+| Top-center | ⌃⌥⌘ Num 8 |
+| Top-right | ⌃⌥⌘ Num 9 |
+| Middle-left | ⌃⌥⌘ Num 4 |
+| Middle-center | ⌃⌥⌘ Num 5 |
+| Middle-right | ⌃⌥⌘ Num 6 |
+| Bottom-left | ⌃⌥⌘ Num 1 |
+| Bottom-center | ⌃⌥⌘ Num 2 |
+| Bottom-right | ⌃⌥⌘ Num 3 |
 
 ### Sizing
 | Action | Shortcut |
@@ -180,10 +180,10 @@ Each 3×3 grid key starts a cycle. Tapping the same key again within the **tap w
 
 | Position | Keys | Cycle (1-tap → last) |
 |---|---|---|
-| Corners | U, O, M, . | 1/9 cell → matching quadrant (1/2 × 1/2) → 2/3 × 2/3 anchored at that corner |
-| Top / bottom edges | I, , | 1/9 cell → top/bottom 1/3 band → top/bottom 1/2 → top/bottom 2/3 |
-| Side edges | J, L | 1/9 cell → left/right 1/3 column → left/right 1/2 → left/right 2/3 |
-| Center | K | 1/9 cell → 1/3 center column → fullscreen |
+| Corners | Num 7, 9, 1, 3 | 1/9 cell → matching quadrant (1/2 × 1/2) → 2/3 × 2/3 anchored at that corner |
+| Top / bottom edges | Num 8, 2 | 1/9 cell → top/bottom 1/3 band → top/bottom 1/2 → top/bottom 2/3 |
+| Side edges | Num 4, 6 | 1/9 cell → left/right 1/3 column → left/right 1/2 → left/right 2/3 |
+| Center | Num 5 | 1/9 cell → 1/3 center column → fullscreen |
 
 Tapping a *different* key resets the cycle — each key tracks its own counter.
 
@@ -222,7 +222,7 @@ If a specific app doesn't respond, open the menubar menu → **Debug → Copy Fo
 Yes. Spectacle stopped receiving updates in 2017. WindowKit keeps the same spirit — a keyboard-first, menubar-only Mac window manager — and adds a spatial 3×3 grid with multi-tap cycles to snap windows on Mac in one or more presses. Apache 2.0, no paywall, no telemetry.
 
 ### How does WindowKit compare to Rectangle?
-Rectangle is the most popular modern Spectacle fork and is excellent if you love drag-to-snap. WindowKit has a smaller surface area — no mouse snapping, no app-specific rules — but it ships the spatial 3×3 grid (`U/I/O`, `J/K/L`, `M/,/.`) and multi-tap cycles that Rectangle doesn't. Both are free and open source. Pick whichever matches your mental model; they don't strictly conflict (though you may want to disable overlapping hotkeys in one of them).
+Rectangle is the most popular modern Spectacle fork and is excellent if you love drag-to-snap. WindowKit has a smaller surface area — no mouse snapping, no app-specific rules — but it ships the spatial 3×3 grid (numpad `7/8/9`, `4/5/6`, `1/2/3`) and multi-tap cycles that Rectangle doesn't. Both are free and open source. Pick whichever matches your mental model; they don't strictly conflict (though you may want to disable overlapping hotkeys in one of them).
 
 ### Does WindowKit work on Apple Silicon (M1, M2, M3, M4)?
 Yes. The release binary is arm64-native, compiled against the macOS 14 SDK.
@@ -240,7 +240,7 @@ macOS requires Accessibility access for any app that reads or moves other apps' 
 Yes, functionally. Magnet and Moom are polished paid apps (roughly $5 – $10 on the Mac App Store); WindowKit is free and open source. If you want drag-to-snap edges or app-specific autolayout rules, Magnet or Moom are still better choices. If you want keyboard-first minimalism, WindowKit is the lightest option.
 
 ### What's different about the 3×3 grid and multi-tap cycles?
-Most window managers think in halves and quadrants. WindowKit adds a third mental tier: nine positional cells whose keyboard shortcuts are arranged *spatially* — the letters' physical position on your keyboard matches the cell's position on screen. Holding `⌘⌥` and pressing `M` snaps the window to the bottom-left 1/9; pressing `M` a second time within the tap window grows it to the bottom-left 1/4 quadrant; a third tap grows it to 2/3 × 2/3 in that corner. Center-row keys `I`, `K`, `,` grow in bands and columns.
+Most window managers think in halves and quadrants. WindowKit adds a third mental tier: nine positional cells whose keyboard shortcuts are arranged *spatially* — the numpad keys' physical position matches the cell's position on screen. Holding `⌃⌥⌘` and pressing `Num 1` snaps the window to the bottom-left 1/9; pressing `Num 1` a second time within the tap window grows it to the bottom-left 1/4 quadrant; a third tap grows it to 2/3 × 2/3 in that corner. Center keys `Num 8`, `Num 5`, `Num 2` grow in bands and columns.
 
 ### Where's the source? Can I contribute?
 All of WindowKit is in this repository under Apache 2.0. Issues and PRs welcome. See [Project Layout](#project-layout) for the module map.

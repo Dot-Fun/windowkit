@@ -1,4 +1,5 @@
 import AppKit
+import Carbon.HIToolbox
 import Combine
 import HotkeyManager
 import PermissionsCoordinator
@@ -99,6 +100,13 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
     private let hotkeys = HotkeyManager()
     private let undo = UndoStack(limit: 20)
     private lazy var runner = ActionRunner(undoStack: undo)
+    private lazy var numpad = NumpadGridController(
+        runner: runner,
+        pauseSeconds: { [store] in Double(store.tapWindowMs) / 1000.0 }
+    )
+
+    /// Numpad sequence language modifier: ⌃⌥⌘.
+    private let numpadModifiers = UInt32(controlKey | optionKey | cmdKey)
 
     private var preferencesWindow: NSWindow?
     private var onboardingWindow: NSWindow?
@@ -114,6 +122,9 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
         }
         hotkeys.tapWindowSeconds = { [weak store] in
             Double(store?.tapWindowMs ?? 400) / 1000.0
+        }
+        hotkeys.onSequenceDigit = { [weak self] digit in
+            self?.numpad.receive(digit: digit)
         }
 
         store.$bindings
@@ -153,12 +164,16 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
     // MARK: - Hotkeys
 
     private func armHotkeys() {
+        guard !hotkeysArmed else { return }
+        hotkeys.armNumpadSequence(modifiers: numpadModifiers)
         hotkeys.apply(bindings: store.bindings)
+        numpad.start()
         hotkeysArmed = true
     }
 
     private func disarmHotkeys() {
         hotkeys.clear()
+        numpad.stop()
         hotkeysArmed = false
     }
 

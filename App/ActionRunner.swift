@@ -38,6 +38,24 @@ public final class ActionRunner {
         }
     }
 
+    /// Apply a `GridRegion` (resolved from the numpad sequence language) to
+    /// the focused window. Mirrors `performGeometry` but takes a region
+    /// computed by `NumpadRegionResolver` rather than a discrete action.
+    public func perform(region: GridRegion) {
+        guard
+            let window = resolveFocusedWindow(),
+            let current = window.frame(),
+            let screen = ScreenResolver.screen(containing: current)
+        else { return }
+
+        let visibleAX = CoordinateConverter.cocoaToAX(
+            screen.visibleFrame,
+            primaryHeight: ScreenResolver.primaryHeight
+        )
+        let target = Geometry.frame(for: region, screen: visibleAX)
+        apply(target: target, window: window, current: current)
+    }
+
     // MARK: - Window resolution
 
     /// Resolve the focused window, giving a Chromium/Electron app that hasn't

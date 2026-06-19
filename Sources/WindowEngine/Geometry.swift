@@ -106,6 +106,17 @@ public enum Geometry {
         }
     }
 
+    /// Frame for a `GridRegion` (a sub-range of a uniform grid) within
+    /// `screen`. Reuses the integer-boundary tiling math so adjacent
+    /// regions share edges exactly. Drives the numpad sequence language.
+    public static func frame(for region: GridRegion, screen: CGRect) -> CGRect {
+        gridRange(
+            screen,
+            startCol: region.colStart, endCol: region.colEnd, cols: region.cols,
+            startRow: region.rowStart, endRow: region.rowEnd, rows: region.rows
+        )
+    }
+
     // MARK: - Tiling primitives
 
     /// Integer boundary positions along `length` divided into `count` parts.

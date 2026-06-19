@@ -135,23 +135,25 @@ private struct ActionGroupSection: View {
                     .padding(.bottom, 4)
             }
 
-            VStack(spacing: 0) {
-                ForEach(Array(group.actions.enumerated()), id: \.element) { index, action in
-                    if index > 0 { Divider() }
-                    ActionRow(
-                        action: action,
-                        shortcut: bindings[action],
-                        hasConflict: conflicts.contains(action),
-                        onChange: { sc in onShortcutChange(action, sc) }
-                    )
+            if !group.actions.isEmpty {
+                VStack(spacing: 0) {
+                    ForEach(Array(group.actions.enumerated()), id: \.element) { index, action in
+                        if index > 0 { Divider() }
+                        ActionRow(
+                            action: action,
+                            shortcut: bindings[action],
+                            hasConflict: conflicts.contains(action),
+                            onChange: { sc in onShortcutChange(action, sc) }
+                        )
+                    }
                 }
+                .background(Color(nsColor: .controlBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+                )
             }
-            .background(Color(nsColor: .controlBackgroundColor))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-            )
         }
     }
 }
@@ -190,12 +192,12 @@ private struct ActionRow: View {
     }
 }
 
-/// Mini 3×3 diagram showing the U/I/O, J/K/L, M/,/. spatial mapping.
+/// Mini 3×3 diagram showing the numpad 7/8/9, 4/5/6, 1/2/3 spatial mapping.
 private struct ThreeByThreeGridDiagram: View {
     private let labels: [[String]] = [
-        ["U", "I", "O"],
-        ["J", "K", "L"],
-        ["M", ",", "."],
+        ["7", "8", "9"],
+        ["4", "5", "6"],
+        ["1", "2", "3"],
     ]
 
     var body: some View {
@@ -218,9 +220,9 @@ private struct ThreeByThreeGridDiagram: View {
                 }
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text("3×3 Spatial Layout")
+                Text("Numpad = the screen")
                     .font(.caption.weight(.medium))
-                Text("Each key snaps the focused window to that cell. The keys mirror the cell's position on screen — top-left U, center K, bottom-right period.")
+                Text("Hold ⌃⌥⌘ and tap cells, then release (or pause):\n• One key → that 1/9 cell (7 = top-left, 5 = center).\n• Two keys → the box between them: 7·9 = top third, 7·1 = left third, 7·5 = top-left 2×2, 7·3 = fullscreen.\n• Double-tap an edge for a half (4·4 = left), a corner for a quarter (7·7). 5·5 = maximize.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -246,10 +248,10 @@ private struct TapBehaviorCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Multi-tap cycles")
+            Text("Numpad sequence timing")
                 .font(.headline)
 
-            Text("Tap the same spatial key again within the window below to cycle through larger sizes at that position. After the last step, another tap wraps back to the smallest.")
+            Text("When you type a numpad region (e.g. 7 then 3), WindowKit snaps as soon as you release ⌃⌥⌘ — or after this pause, whichever comes first.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

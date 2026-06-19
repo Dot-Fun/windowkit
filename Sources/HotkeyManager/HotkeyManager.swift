@@ -6,10 +6,17 @@ import WindowEngine
 /// Registers global hotkeys via Carbon `RegisterEventHotKey` and invokes
 /// `onAction` when one fires. Re-registering replaces all prior registrations.
 ///
+/// Also drives the numpad "sequence" language: the numeric keypad keys 1–9
+/// can be registered under a shared modifier (`armNumpadSequence`); each press
+/// fires `onSequenceDigit` so a higher layer can accumulate a region sequence.
+///
 /// Main-actor isolated: Carbon's event handler runs on the main run loop.
 @MainActor
 public final class HotkeyManager {
     public var onAction: ((WindowAction, Int) -> Void)?
+    /// Fires with a numpad digit (1–9) when a registered numpad sequence key
+    /// is pressed. Accumulation and commit are owned by the caller.
+    public var onSequenceDigit: ((Int) -> Void)?
     public var tapWindowSeconds: () -> TimeInterval = { 0.7 }
 
     private struct Registration {
@@ -19,6 +26,13 @@ public final class HotkeyManager {
 
     private var registrations: [UInt32: Registration] = [:]
     private var idToAction: [UInt32: WindowAction] = [:]
+
+    // Numpad sequence keys are tracked separately so a binding change (which
+    // re-`apply`s) never drops them.
+    private var numpadRegistrations: [UInt32: EventHotKeyRef] = [:]
+    private var idToDigit: [UInt32: Int] = [:]
+    private var numpadModifiers: UInt32?
+
     private var eventHandlerRef: EventHandlerRef?
     private var nextID: UInt32 = 1
     private let tapDetector: TapDetector
@@ -42,6 +56,9 @@ public final class HotkeyManager {
         for (_, reg) in registrations {
             UnregisterEventHotKey(reg.hotKeyRef)
         }
+        for (_, ref) in numpadRegistrations {
+            UnregisterEventHotKey(ref)
+        }
         if let h = eventHandlerRef {
             RemoveEventHandler(h)
         }
@@ -61,6 +78,17 @@ public final class HotkeyManager {
             if !seen.insert(fingerprint).inserted { continue }
             registerOne(action: action, shortcut: shortcut)
         }
+        // `clear()` dropped the numpad keys too; re-arm them so the sequence
+        // language survives binding changes.
+        registerNumpadKeys()
+    }
+
+    /// Enable the numpad sequence language under `modifiers` (e.g. ⌃⌥⌘).
+    /// Registration happens on the next `apply(bindings:)` (which always
+    /// re-registers numpad keys), so callers should pair this with `apply`.
+    /// Keeping registration in one place avoids double-registering the keys.
+    public func armNumpadSequence(modifiers: UInt32) {
+        numpadModifiers = modifiers
     }
 
     public func clear() {
@@ -69,9 +97,41 @@ public final class HotkeyManager {
         }
         registrations.removeAll()
         idToAction.removeAll()
+        clearNumpadKeys()
     }
 
     // MARK: - Internals
+
+    private func clearNumpadKeys() {
+        for (_, ref) in numpadRegistrations {
+            UnregisterEventHotKey(ref)
+        }
+        numpadRegistrations.removeAll()
+        idToDigit.removeAll()
+    }
+
+    private func registerNumpadKeys() {
+        guard let mods = numpadModifiers else { return }
+        clearNumpadKeys()
+        // Numpad laid out as a 3×3 map of the screen (top row 7/8/9).
+        let keypad: [(key: Int, digit: Int)] = [
+            (kVK_ANSI_Keypad1, 1), (kVK_ANSI_Keypad2, 2), (kVK_ANSI_Keypad3, 3),
+            (kVK_ANSI_Keypad4, 4), (kVK_ANSI_Keypad5, 5), (kVK_ANSI_Keypad6, 6),
+            (kVK_ANSI_Keypad7, 7), (kVK_ANSI_Keypad8, 8), (kVK_ANSI_Keypad9, 9),
+        ]
+        for entry in keypad {
+            let id = nextID
+            nextID += 1
+            let hkID = EventHotKeyID(signature: HotkeyManager.signature, id: id)
+            var ref: EventHotKeyRef?
+            let status = RegisterEventHotKey(
+                UInt32(entry.key), mods, hkID, GetApplicationEventTarget(), 0, &ref
+            )
+            guard status == noErr, let ref else { continue }
+            numpadRegistrations[id] = ref
+            idToDigit[id] = entry.digit
+        }
+    }
 
     private func registerOne(action: WindowAction, shortcut: Shortcut) {
         let id = nextID
@@ -97,9 +157,13 @@ public final class HotkeyManager {
             // Carbon fires on the main thread; hop onto the main actor to
             // touch MainActor-isolated state safely.
             MainActor.assumeIsolated {
-                guard let self, let action = self.idToAction[id] else { return }
-                let count = self.tapDetector.register(action, window: self.tapWindowSeconds())
-                self.onAction?(action, count)
+                guard let self else { return }
+                if let action = self.idToAction[id] {
+                    let count = self.tapDetector.register(action, window: self.tapWindowSeconds())
+                    self.onAction?(action, count)
+                } else if let digit = self.idToDigit[id] {
+                    self.onSequenceDigit?(digit)
+                }
             }
         }
 

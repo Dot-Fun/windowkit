@@ -44,7 +44,7 @@ These steps must be performed on a real macOS 14+ session and ticked off before 
 | M4 | Halves: focus a window, press ⌃⌥←/→/↑/↓ → window snaps correctly on primary display | ⚠ |
 | M5 | Quadrants: ⌃⌥ 1/2/3/4 → correct corners | ⚠ |
 | M6 | Thirds: ⌃⌥⌘ ←/↑/→ → left/center/right thirds | ⚠ |
-| M7 | 3×3 grid: ⌘⌥ U/I/O/J/K/L/M/,/. → matches on-screen cell | ⚠ |
+| M7 | 3×3 grid: ⌃⌥⌘ numpad 7/8/9/4/5/6/1/2/3 → matches on-screen cell | ⚠ |
 | M8 | Fullscreen ⌃⌥F, Center ⌃⌥C, Almost-max ⌃⌥= | ⚠ |
 | M9 | Undo ⌃⌥Z restores previous frame; Redo ⌃⌥⇧Z reapplies | ⚠ |
 | M10 | Multi-display: ⌃⌥⌘ ] / [ moves window across displays preserving proportional frame | ⚠ Requires ≥2 displays |
@@ -110,15 +110,15 @@ Numbered V2-M1..V2-M12 to avoid clashing with v0.1's M1–M14.
 | V2-M1 | Launch rebuilt `build/WindowKit.app` → menu-bar icon, no Dock icon, no crash on cold start | ⚠ |
 | V2-M2 | Preferences → new "Tap Behavior" card at top of Shortcuts tab; slider shows current ms value; dragging updates live | ⚠ |
 | V2-M3 | Each of the 9 grid rows shows a small read-only caption listing its cycle steps (e.g., "1× cell · 2× 1/3 band · 3× half · 4× 2/3") | ⚠ |
-| V2-M4 | Focus Safari. ⌘⌥U once → top-left 1/9 cell. ⌘⌥U again within 400 ms → top-left quadrant (1/4). Wait 1 s, press again → back to 1/9. | ⚠ |
-| V2-M5 | ⌘⌥I four times rapidly → cycles 1/9 → top 1/3 → top 1/2 → top 2/3. 5th press within window wraps back to 1/9. | ⚠ |
-| V2-M6 | ⌘⌥L three times rapidly → 1/9 → right 1/3 → right 1/2. | ⚠ |
-| V2-M7 | ⌘⌥K twice rapidly → 1/9 → fullscreen. | ⚠ |
+| V2-M4 | Focus Safari. ⌃⌥⌘ Num 7 once → top-left 1/9 cell. ⌃⌥⌘ Num 7 again within 400 ms → top-left quadrant (1/4). Wait 1 s, press again → back to 1/9. | ⚠ |
+| V2-M5 | ⌃⌥⌘ Num 8 four times rapidly → cycles 1/9 → top 1/3 → top 1/2 → top 2/3. 5th press within window wraps back to 1/9. | ⚠ |
+| V2-M6 | ⌃⌥⌘ Num 6 three times rapidly → 1/9 → right 1/3 → right 1/2. | ⚠ |
+| V2-M7 | ⌃⌥⌘ Num 5 twice rapidly → 1/9 → fullscreen. | ⚠ |
 | V2-M8 | Set slider to 200 ms. Double-taps at ~300 ms gap now count as separate single-taps (each fires 1/9). | ⚠ |
-| V2-M9 | Interleave ⌘⌥I then ⌘⌥, — each grid key maintains its own independent cycle state; no cross-contamination. | ⚠ |
-| V2-M10 | **Dock awareness (pinned)**: with Dock pinned at bottom, ⌘⌥, → snapped window's bottom edge is flush with Dock's TOP edge, not the screen bottom. Repeat with Dock on left (⌘⌥J) and right (⌘⌥L). | ⚠ |
-| V2-M11 | **Dock awareness (auto-hide)**: with auto-hide Dock, ⌘⌥, → window extends to screen bottom (expected); Dock overlays on hover (expected). | ⚠ |
-| V2-M12 | **Non-resizable apps still move**: open a fixed-size System Settings pane and focus it. Press ⌘⌥U. Window MOVES to top-left 1/9 cell origin but keeps its intrinsic size. No beep, no error, no revert. | ⚠ |
+| V2-M9 | Interleave ⌃⌥⌘ Num 8 then ⌃⌥⌘ Num 2 — each grid key maintains its own independent cycle state; no cross-contamination. | ⚠ |
+| V2-M10 | **Dock awareness (pinned)**: with Dock pinned at bottom, ⌃⌥⌘ Num 2 → snapped window's bottom edge is flush with Dock's TOP edge, not the screen bottom. Repeat with Dock on left (⌃⌥⌘ Num 4) and right (⌃⌥⌘ Num 6). | ⚠ |
+| V2-M11 | **Dock awareness (auto-hide)**: with auto-hide Dock, ⌃⌥⌘ Num 2 → window extends to screen bottom (expected); Dock overlays on hover (expected). | ⚠ |
+| V2-M12 | **Non-resizable apps still move**: open a fixed-size System Settings pane and focus it. Press ⌃⌥⌘ Num 7. Window MOVES to top-left 1/9 cell origin but keeps its intrinsic size. No beep, no error, no revert. | ⚠ |
 
 ## Bundle (v0.2)
 
