@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 /// A rectangular screen region expressed as a sub-range of a uniform
@@ -26,6 +27,59 @@ public struct GridRegion: Equatable, Sendable {
 
     /// Whole screen.
     public static let fullscreen = GridRegion(cols: 1, rows: 1, colStart: 0, colEnd: 1, rowStart: 0, rowEnd: 1)
+}
+
+public extension GridRegion {
+    /// The region as `(x, y, w, h)` fractions of the screen (0...1, top-left
+    /// origin). Used by the overlay to draw a 1:1 preview of the window's footprint.
+    var fractions: (x: CGFloat, y: CGFloat, w: CGFloat, h: CGFloat) {
+        (
+            CGFloat(colStart) / CGFloat(cols),
+            CGFloat(rowStart) / CGFloat(rows),
+            CGFloat(colEnd - colStart) / CGFloat(cols),
+            CGFloat(rowEnd - rowStart) / CGFloat(rows)
+        )
+    }
+
+    /// A short human label for the region, e.g. "Left Half", "Top-Left Quarter",
+    /// "Top Third", "Top-Left 2×2", "Fullscreen". Used as the overlay caption.
+    func describe() -> String {
+        let f = fractions
+        let t: CGFloat = 1.0 / 3.0
+        func approx(_ a: CGFloat, _ b: CGFloat) -> Bool { abs(a - b) < 0.02 }
+        let fullW = approx(f.w, 1), fullH = approx(f.h, 1)
+
+        if fullW && fullH { return "Fullscreen" }
+        // Halves
+        if approx(f.w, 0.5) && fullH { return f.x < 0.25 ? "Left Half" : "Right Half" }
+        if fullW && approx(f.h, 0.5) { return f.y < 0.25 ? "Top Half" : "Bottom Half" }
+        // Quarters (½ × ½)
+        if approx(f.w, 0.5) && approx(f.h, 0.5) {
+            return "\(f.y < 0.25 ? "Top" : "Bottom")-\(f.x < 0.25 ? "Left" : "Right") Quarter"
+        }
+        // Vertical thirds (full-height columns)
+        if approx(f.w, t) && fullH {
+            return f.x < 0.1 ? "Left Third" : (f.x > 0.6 ? "Right Third" : "Center Third")
+        }
+        // Horizontal thirds (full-width bands)
+        if fullW && approx(f.h, t) {
+            return f.y < 0.1 ? "Top Third" : (f.y > 0.6 ? "Bottom Third" : "Middle Third")
+        }
+        // Two-thirds
+        if approx(f.w, 2 * t) && fullH { return f.x < 0.1 ? "Left Two-Thirds" : "Right Two-Thirds" }
+        if fullW && approx(f.h, 2 * t) { return f.y < 0.1 ? "Top Two-Thirds" : "Bottom Two-Thirds" }
+        // Corner 2×2 block (⅔ × ⅔)
+        if approx(f.w, 2 * t) && approx(f.h, 2 * t) {
+            return "\(f.y < 0.1 ? "Top" : "Bottom")-\(f.x < 0.1 ? "Left" : "Right") 2×2"
+        }
+        // Single 1/9 cell
+        if approx(f.w, t) && approx(f.h, t) {
+            let v = f.y < 0.1 ? "Top" : (f.y > 0.6 ? "Bottom" : "Middle")
+            let h = f.x < 0.1 ? "Left" : (f.x > 0.6 ? "Right" : "Center")
+            return "\(v) \(h) Cell"
+        }
+        return "Region"
+    }
 }
 
 /// Resolves a sequence of numeric-keypad digits into a screen region,

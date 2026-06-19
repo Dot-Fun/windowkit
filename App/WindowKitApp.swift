@@ -108,6 +108,9 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
     /// Numpad sequence language modifier: ⌃⌥⌘.
     private let numpadModifiers = UInt32(controlKey | optionKey | cmdKey)
 
+    /// On-screen glass grid that previews the numpad region live.
+    private let overlay = GridOverlayController()
+
     private var preferencesWindow: NSWindow?
     private var onboardingWindow: NSWindow?
     private var staleGrantWindow: NSWindow?
@@ -126,6 +129,9 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
         hotkeys.onSequenceDigit = { [weak self] digit in
             self?.numpad.receive(digit: digit)
         }
+        numpad.onShowOverlay = { [weak self] in self?.presentGridOverlay() }
+        numpad.onUpdateOverlay = { [weak self] region in self?.overlay.update(region: region) }
+        numpad.onHideOverlay = { [weak self] in self?.overlay.hide() }
 
         store.$bindings
             .dropFirst()
@@ -175,6 +181,12 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
         hotkeys.clear()
         numpad.stop()
         hotkeysArmed = false
+    }
+
+    /// Show the grid overlay on the focused window's display.
+    private func presentGridOverlay() {
+        guard let screen = runner.focusedScreen() ?? NSScreen.main ?? NSScreen.screens.first else { return }
+        overlay.show(on: screen)
     }
 
     // MARK: - Stale-grant confirmation

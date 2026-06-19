@@ -56,6 +56,15 @@ public final class ActionRunner {
         apply(target: target, window: window, current: current)
     }
 
+    /// The `NSScreen` the focused window lives on (for placing the grid
+    /// overlay where the window will snap). Falls back to the main screen.
+    public func focusedScreen() -> NSScreen? {
+        guard let window = resolveFocusedWindow(), let frame = window.frame() else {
+            return NSScreen.main
+        }
+        return ScreenResolver.screen(containing: frame)
+    }
+
     // MARK: - Window resolution
 
     /// Resolve the focused window, giving a Chromium/Electron app that hasn't
