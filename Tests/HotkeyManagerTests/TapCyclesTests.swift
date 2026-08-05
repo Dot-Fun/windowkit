@@ -1,73 +1,74 @@
 import XCTest
+import CoreGraphics
 import WindowEngine
 @testable import HotkeyManager
 
 final class TapCyclesTests: XCTestCase {
-    func testMiddleLeftThreeStepCycle() {
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleLeft, tapCount: 1), .leftHalf)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleLeft, tapCount: 2), .firstThird)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleLeft, tapCount: 3), .firstTwoThirds)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleLeft, tapCount: 4), .leftHalf)
+    private let screen = CGRect(x: 0, y: 0, width: 1440, height: 900)
+
+    /// Target frame for a fixed-slice cycle step on the test screen. All cycle
+    /// steps ignore `current`, so `.zero` is fine here.
+    private func frame(of action: WindowAction) -> CGRect {
+        Geometry.targetFrame(for: action, screen: screen, current: .zero)!
     }
 
-    func testWrapsGridCycles() {
-        // 3-step size cycle wraps to step 1 at tap 4.
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleLeft, tapCount: 4), .leftHalf)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleLeft, tapCount: 5), .firstThird)
-        // 3-step corner cycle wraps to step 1 at tap 4.
-        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 4), .topLeft)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 5), .grid3TopLeft)
+    /// Standing exactly on each step of `cycle`, a press of `primary` advances
+    /// to the next step and wraps after the last.
+    private func assertAdvancesThroughCycle(
+        _ primary: WindowAction,
+        _ cycle: [WindowAction],
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        for (i, step) in cycle.enumerated() {
+            let current = frame(of: step)
+            let expected = cycle[(i + 1) % cycle.count]
+            XCTAssertEqual(
+                TapCycles.next(primary, current: current, screen: screen),
+                expected,
+                "standing on \(step) should advance to \(expected)",
+                file: file, line: line
+            )
+        }
     }
 
-    func testCornerCyclesThreeSteps() {
-        // Top-left
-        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 1), .topLeft)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 2), .grid3TopLeft)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopLeft, tapCount: 3), .topLeftTwoThirds)
-        // Top-right
-        XCTAssertEqual(TapCycles.resolve(.grid3TopRight, tapCount: 1), .topRight)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopRight, tapCount: 2), .grid3TopRight)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopRight, tapCount: 3), .topRightTwoThirds)
-        // Bottom-left
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomLeft, tapCount: 1), .bottomLeft)
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomLeft, tapCount: 2), .grid3BottomLeft)
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomLeft, tapCount: 3), .bottomLeftTwoThirds)
-        // Bottom-right
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomRight, tapCount: 1), .bottomRight)
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomRight, tapCount: 2), .grid3BottomRight)
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomRight, tapCount: 3), .bottomRightTwoThirds)
+    func testDirectionalCyclesAdvanceByGeometry() {
+        assertAdvancesThroughCycle(.grid3MiddleLeft,   [.leftHalf, .firstThird, .firstTwoThirds, .grid3MiddleLeft])
+        assertAdvancesThroughCycle(.grid3MiddleRight,  [.rightHalf, .lastThird, .lastTwoThirds, .grid3MiddleRight])
+        assertAdvancesThroughCycle(.grid3TopCenter,    [.topHalf, .topThird, .topTwoThirds, .grid3TopCenter])
+        assertAdvancesThroughCycle(.grid3BottomCenter, [.bottomHalf, .bottomThird, .bottomTwoThirds, .grid3BottomCenter])
     }
 
-    func testMiddleCenterThreeStepCycle() {
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 1), .fullscreen)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 2), .grid3MiddleCenter)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 3), .centerThird)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleCenter, tapCount: 4), .fullscreen)
+    func testCornerAndCenterCyclesAdvanceByGeometry() {
+        assertAdvancesThroughCycle(.grid3TopLeft,      [.topLeft, .grid3TopLeft, .topLeftTwoThirds])
+        assertAdvancesThroughCycle(.grid3MiddleCenter, [.fullscreen, .grid3MiddleCenter, .centerThird])
     }
 
-    func testVerticalBandCycles() {
-        XCTAssertEqual(TapCycles.resolve(.grid3TopCenter, tapCount: 1), .topHalf)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopCenter, tapCount: 2), .topThird)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopCenter, tapCount: 3), .topTwoThirds)
-        XCTAssertEqual(TapCycles.resolve(.grid3TopCenter, tapCount: 4), .topHalf)
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomCenter, tapCount: 1), .bottomHalf)
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomCenter, tapCount: 2), .bottomThird)
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomCenter, tapCount: 3), .bottomTwoThirds)
-        XCTAssertEqual(TapCycles.resolve(.grid3BottomCenter, tapCount: 4), .bottomHalf)
+    func testFirstPressFromNonCycleLayoutStartsAtFirstStep() {
+        // A small floating window that matches no cycle step.
+        let floating = CGRect(x: 500, y: 400, width: 300, height: 220)
+        XCTAssertEqual(TapCycles.next(.grid3MiddleLeft,   current: floating, screen: screen), .leftHalf)
+        XCTAssertEqual(TapCycles.next(.grid3MiddleRight,  current: floating, screen: screen), .rightHalf)
+        XCTAssertEqual(TapCycles.next(.grid3MiddleCenter, current: floating, screen: screen), .fullscreen)
     }
 
-    func testMiddleRightCycle() {
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleRight, tapCount: 1), .rightHalf)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleRight, tapCount: 2), .lastThird)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleRight, tapCount: 3), .lastTwoThirds)
-        XCTAssertEqual(TapCycles.resolve(.grid3MiddleRight, tapCount: 4), .rightHalf)
+    func testNearMissWithinToleranceStillAdvances() {
+        // A window placed slightly off leftHalf (within the match threshold)
+        // still counts as occupying that step, so a press advances to firstThird.
+        var nudged = frame(of: .leftHalf)
+        nudged.origin.x += 8
+        nudged.size.height -= 6
+        XCTAssertLessThanOrEqual(
+            Geometry.frameDistance(nudged, frame(of: .leftHalf)),
+            TapCycles.matchThreshold(for: screen)
+        )
+        XCTAssertEqual(TapCycles.next(.grid3MiddleLeft, current: nudged, screen: screen), .firstThird)
     }
 
     func testNonCycleActionReturnsSelf() {
-        XCTAssertEqual(TapCycles.resolve(.leftHalf, tapCount: 1), .leftHalf)
-        XCTAssertEqual(TapCycles.resolve(.leftHalf, tapCount: 5), .leftHalf)
-        XCTAssertEqual(TapCycles.resolve(.fullscreen, tapCount: 2), .fullscreen)
-        XCTAssertEqual(TapCycles.resolve(.undo, tapCount: 3), .undo)
+        let any = CGRect(x: 10, y: 20, width: 300, height: 200)
+        XCTAssertEqual(TapCycles.next(.leftHalf,   current: any, screen: screen), .leftHalf)
+        XCTAssertEqual(TapCycles.next(.fullscreen, current: any, screen: screen), .fullscreen)
+        XCTAssertEqual(TapCycles.next(.undo,       current: any, screen: screen), .undo)
     }
-
 }

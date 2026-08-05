@@ -124,28 +124,28 @@ public enum ActionCatalog {
         }
     }
 
-    /// Multi-tap cycle steps shown under the 9 grid3* rows.
-    /// Mirrors the `TapCycles` map owned by HotkeyManager (task #2).
+    /// Cycle steps shown under the 9 grid3* rows, in press order.
+    /// Mirrors `TapCycles.default` owned by HotkeyManager.
     public static func cycleSteps(for action: WindowAction) -> [String]? {
         switch action {
         case .grid3TopLeft:
-            return ["1× top-left 1/9", "2× top-left 1/4", "3× top-left 2/3 × 2/3"]
+            return ["1× top-left 1/4", "2× top-left 1/9", "3× top-left 2/3 × 2/3"]
         case .grid3TopCenter:
-            return ["1× top 1/2", "2× top 1/3", "3× top 2/3"]
+            return ["1× top 1/2", "2× top 1/3", "3× top 2/3", "4× top-center 1/9"]
         case .grid3TopRight:
-            return ["1× top-right 1/9", "2× top-right 1/4", "3× top-right 2/3 × 2/3"]
+            return ["1× top-right 1/4", "2× top-right 1/9", "3× top-right 2/3 × 2/3"]
         case .grid3MiddleLeft:
-            return ["1× left 1/2", "2× left 1/3", "3× left 2/3"]
+            return ["1× left 1/2", "2× left 1/3", "3× left 2/3", "4× middle-left 1/9"]
         case .grid3MiddleCenter:
-            return ["1× center 1/9", "2× 1/3 center column", "3× fullscreen"]
+            return ["1× fullscreen", "2× center 1/9", "3× 1/3 center column"]
         case .grid3MiddleRight:
-            return ["1× right 1/2", "2× right 1/3", "3× right 2/3"]
+            return ["1× right 1/2", "2× right 1/3", "3× right 2/3", "4× middle-right 1/9"]
         case .grid3BottomLeft:
-            return ["1× bottom-left 1/9", "2× bottom-left 1/4", "3× bottom-left 2/3 × 2/3"]
+            return ["1× bottom-left 1/4", "2× bottom-left 1/9", "3× bottom-left 2/3 × 2/3"]
         case .grid3BottomCenter:
-            return ["1× bottom 1/2", "2× bottom 1/3", "3× bottom 2/3"]
+            return ["1× bottom 1/2", "2× bottom 1/3", "3× bottom 2/3", "4× bottom-center 1/9"]
         case .grid3BottomRight:
-            return ["1× bottom-right 1/9", "2× bottom-right 1/4", "3× bottom-right 2/3 × 2/3"]
+            return ["1× bottom-right 1/4", "2× bottom-right 1/9", "3× bottom-right 2/3 × 2/3"]
         default:
             return nil
         }

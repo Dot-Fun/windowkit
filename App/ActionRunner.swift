@@ -22,9 +22,8 @@ public final class ActionRunner {
         self.undo = undoStack
     }
 
-    public func perform(_ action: WindowAction, tapCount: Int = 1) {
-        let resolved = TapCycles.resolve(action, tapCount: tapCount)
-        switch resolved {
+    public func perform(_ action: WindowAction) {
+        switch action {
         case .undo:
             performUndo()
         case .redo:
@@ -34,7 +33,7 @@ public final class ActionRunner {
         case .previousDisplay:
             moveToAdjacentDisplay(next: false)
         default:
-            performGeometry(resolved)
+            performGeometry(action)
         }
     }
 
@@ -67,7 +66,10 @@ public final class ActionRunner {
             screen.visibleFrame,
             primaryHeight: ScreenResolver.primaryHeight
         )
-        guard let target = Geometry.targetFrame(for: action, screen: visibleAX, current: current)
+        // Cycle position is geometry-driven: advance to the next step based on
+        // where the window currently sits (no-op for non-cycle actions).
+        let resolved = TapCycles.next(action, current: current, screen: visibleAX)
+        guard let target = Geometry.targetFrame(for: resolved, screen: visibleAX, current: current)
         else { return }
 
         apply(target: target, window: window, current: current)

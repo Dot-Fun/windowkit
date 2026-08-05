@@ -109,11 +109,8 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
     private var staleConfirmation: Task<Void, Never>?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        hotkeys.onAction = { [weak self] action, count in
-            self?.runner.perform(action, tapCount: count)
-        }
-        hotkeys.tapWindowSeconds = { [weak store] in
-            Double(store?.tapWindowMs ?? 400) / 1000.0
+        hotkeys.onAction = { [weak self] action in
+            self?.runner.perform(action)
         }
 
         store.$bindings

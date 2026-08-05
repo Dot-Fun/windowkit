@@ -384,4 +384,19 @@ final class GeometryTests: XCTestCase {
             XCTAssertNotNil(result, "\(action) should produce a frame")
         }
     }
+
+    // MARK: - Frame distance
+
+    func testFrameDistanceIsZeroForEqualFrames() {
+        let r = CGRect(x: 10, y: 20, width: 300, height: 200)
+        XCTAssertEqual(Geometry.frameDistance(r, r), 0)
+    }
+
+    func testFrameDistanceIsChebyshevOverOriginAndSize() {
+        let a = CGRect(x: 0, y: 0, width: 720, height: 900)
+        // Differs by 5 in x, 3 in y, 40 in width, 7 in height → max is 40.
+        let b = CGRect(x: 5, y: 3, width: 760, height: 907)
+        XCTAssertEqual(Geometry.frameDistance(a, b), 40)
+        XCTAssertEqual(Geometry.frameDistance(b, a), 40, "distance is symmetric")
+    }
 }

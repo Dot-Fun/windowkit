@@ -106,6 +106,21 @@ public enum Geometry {
         }
     }
 
+    /// Chebyshev distance between two frames: the largest absolute difference
+    /// among `minX`, `minY`, `width`, and `height`. Origin-agnostic like the
+    /// rest of `Geometry`. Used to classify which tiling step a window
+    /// currently occupies (see `TapCycles.next`): comparing the full rect —
+    /// origin *and* size — keeps steps that share an origin but differ in size
+    /// (e.g. `leftHalf` vs `firstThird` vs `firstTwoThirds`) distinct.
+    public static func frameDistance(_ a: CGRect, _ b: CGRect) -> CGFloat {
+        max(
+            abs(a.minX - b.minX),
+            abs(a.minY - b.minY),
+            abs(a.width - b.width),
+            abs(a.height - b.height)
+        )
+    }
+
     // MARK: - Tiling primitives
 
     /// Integer boundary positions along `length` divided into `count` parts.

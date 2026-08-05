@@ -17,7 +17,7 @@ public struct PreferencesWindow: View {
             VStack(alignment: .leading, spacing: 20) {
                 header
 
-                TapBehaviorCard(store: store)
+                TapBehaviorCard()
 
                 ForEach(ActionCatalog.groups) { group in
                     ActionGroupSection(
@@ -233,36 +233,17 @@ private struct ThreeByThreeGridDiagram: View {
     }
 }
 
-/// "Tap Behavior" card: explains multi-tap cycles and exposes the tap-window slider.
+/// "Tap Behavior" card: explains how repeated presses cycle window sizes.
 private struct TapBehaviorCard: View {
-    @ObservedObject var store: PreferencesStore
-
-    private var tapWindowBinding: Binding<Double> {
-        Binding(
-            get: { Double(store.tapWindowMs) },
-            set: { store.tapWindowMs = Int($0.rounded()) }
-        )
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Multi-tap cycles")
+            Text("Repeat to cycle sizes")
                 .font(.headline)
 
-            Text("Tap the same spatial key again within the window below to cycle through larger sizes at that position. After the last step, another tap wraps back to the smallest.")
+            Text("Press the same spatial key again to cycle through larger sizes at that position — the first press snaps to the smallest, then each repeat grows it, wrapping back around after the last step. Move or resize the window and the next press starts the cycle over. Timing doesn't matter.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-
-            HStack(spacing: 12) {
-                Text("Tap window")
-                    .frame(width: 100, alignment: .leading)
-                Slider(value: tapWindowBinding, in: Double(PreferencesStore.tapWindowMinMs)...Double(PreferencesStore.tapWindowMaxMs), step: 10)
-                Text("\(store.tapWindowMs) ms")
-                    .font(.body.monospacedDigit())
-                    .frame(width: 70, alignment: .trailing)
-                    .foregroundStyle(.secondary)
-            }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)

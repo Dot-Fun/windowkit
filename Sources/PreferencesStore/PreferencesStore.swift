@@ -9,32 +9,14 @@ public struct Conflict: Equatable, Sendable {
 
 public final class PreferencesStore: ObservableObject {
     private static let defaultsKey = "WindowKit.bindings.v1"
-    private static let tapWindowKey = "WindowKit.tapWindowMs"
 
     @Published public private(set) var bindings: [WindowAction: Shortcut]
-
-    public static let tapWindowMinMs = 150
-    public static let tapWindowMaxMs = 1000
-    public static let tapWindowDefaultMs = 700
-
-    @Published public var tapWindowMs: Int = PreferencesStore.tapWindowDefaultMs {
-        didSet {
-            let clamped = min(max(tapWindowMs, Self.tapWindowMinMs), Self.tapWindowMaxMs)
-            if clamped != tapWindowMs {
-                tapWindowMs = clamped
-                return
-            }
-            defaults.set(tapWindowMs, forKey: Self.tapWindowKey)
-        }
-    }
 
     private let defaults: UserDefaults
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.bindings = DefaultBindings.spectacle
-        let stored = defaults.object(forKey: Self.tapWindowKey) as? Int
-        self.tapWindowMs = min(max(stored ?? Self.tapWindowDefaultMs, Self.tapWindowMinMs), Self.tapWindowMaxMs)
         load()
     }
 
