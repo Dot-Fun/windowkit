@@ -65,6 +65,19 @@ final class TapCyclesTests: XCTestCase {
         XCTAssertEqual(TapCycles.next(.grid3MiddleLeft, current: nudged, screen: screen), .firstThird)
     }
 
+    func testEveryCycleTargetFitsADockReducedWorkArea() {
+        let workArea = CGRect(x: 0, y: 30, width: 1440, height: 790)
+
+        for (primary, cycle) in TapCycles.default {
+            for step in cycle {
+                let current = Geometry.targetFrame(for: step, screen: workArea, current: .zero)!
+                let resolved = TapCycles.next(primary, current: current, screen: workArea)
+                let target = Geometry.targetFrame(for: resolved, screen: workArea, current: current)!
+                XCTAssertTrue(workArea.contains(target), "\(primary) -> \(resolved) crosses the work area")
+            }
+        }
+    }
+
     func testNonCycleActionReturnsSelf() {
         let any = CGRect(x: 10, y: 20, width: 300, height: 200)
         XCTAssertEqual(TapCycles.next(.leftHalf,   current: any, screen: screen), .leftHalf)

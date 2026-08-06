@@ -132,15 +132,15 @@ public struct AXWindow: Equatable {
         return result
     }
 
-    /// The actual frame write. Position twice (position → size → position)
-    /// because some apps that clamp size also shift origin as a side effect;
-    /// the second position write pins the origin back. `sizeApplied == false`
-    /// is legitimate and the caller decides what to do with it.
+    /// The actual frame write. Set size before position so a bottom-anchored
+    /// target is not clamped using the window's previous taller size. Position
+    /// twice because some apps shift it while applying size; `sizeApplied ==
+    /// false` is legitimate and the caller decides what to do with it.
     private func writeFrame(_ frame: CGRect) -> SetFrameResult {
         let pt = CGPoint(x: frame.origin.x, y: frame.origin.y)
-        let posOK1 = setValue(pt, type: .cgPoint, attribute: kAXPositionAttribute)
         let sizeOK = setValue(CGSize(width: frame.width, height: frame.height),
                               type: .cgSize, attribute: kAXSizeAttribute)
+        let posOK1 = setValue(pt, type: .cgPoint, attribute: kAXPositionAttribute)
         let posOK2 = setValue(pt, type: .cgPoint, attribute: kAXPositionAttribute)
         return SetFrameResult(positionApplied: posOK1 || posOK2, sizeApplied: sizeOK)
     }

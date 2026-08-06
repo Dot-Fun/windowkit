@@ -246,6 +246,21 @@ public enum Geometry {
         y = max(screen.minY, min(y, screen.maxY - h))
         return CGRect(x: x.rounded(), y: y.rounded(), width: w.rounded(), height: h.rounded())
     }
+
+    /// Return `frame` shifted and, only when necessary, shrunk to fit in
+    /// `bounds`. Used after an Accessibility resize when an app reports a
+    /// frame different from the requested target.
+    public static func fitted(_ frame: CGRect, in bounds: CGRect) -> CGRect {
+        let frame = frame.standardized
+        let bounds = bounds.standardized
+        guard bounds.width > 0, bounds.height > 0 else { return frame }
+
+        let width = min(frame.width, bounds.width)
+        let height = min(frame.height, bounds.height)
+        let x = min(max(frame.minX, bounds.minX), bounds.maxX - width)
+        let y = min(max(frame.minY, bounds.minY), bounds.maxY - height)
+        return CGRect(x: x, y: y, width: width, height: height)
+    }
 }
 
 // MARK: - Coordinate conversion

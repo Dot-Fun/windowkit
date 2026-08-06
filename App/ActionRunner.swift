@@ -72,7 +72,7 @@ public final class ActionRunner {
         guard let target = Geometry.targetFrame(for: resolved, screen: visibleAX, current: current)
         else { return }
 
-        apply(target: target, window: window, current: current)
+        apply(target: target, in: visibleAX, window: window, current: current)
     }
 
     // MARK: - Displays
@@ -105,7 +105,7 @@ public final class ActionRunner {
             height: min(toAX.height, fh * toAX.height)
         )
 
-        apply(target: target, window: window, current: current)
+        apply(target: target, in: toAX, window: window, current: current)
     }
 
     // MARK: - History
@@ -136,29 +136,37 @@ public final class ActionRunner {
     /// Chromium rounds to integer pixels and occasionally adds a 1 px fudge.
     private static let matchTolerance: CGFloat = 2.0
 
-    private func apply(target: CGRect, window: AXWindow, current: CGRect) {
+    private func apply(target: CGRect, in workArea: CGRect, window: AXWindow, current: CGRect) {
         guard target != current else { return }
         undo.push(UndoStack.Snapshot(frame: current))
         redoFrames.removeAll()
 
         let result = window.setFrame(target)
 
-        // If position landed near the target, we're done. Size failures are
-        // expected on fixed-size apps; don't treat those as failures.
-        if result.positionApplied, positionMatches(window: window, target: target) {
+        guard let actual = window.frame() else {
+            window.setFrame(target)
             return
         }
 
-        // One plain retry for transient races (e.g. a window mid-animation).
-        // Electron positioning is handled inside setFrame, which neutralizes
-        // AXEnhancedUserInterface around the write — no nudge needed here.
+        // AX can accept the position while retaining or clamping a different
+        // size. A bottom-anchored cycle would then reach behind a pinned Dock.
+        if result.positionApplied,
+           result.sizeApplied,
+           frameMatches(actual, target: target),
+           workArea.contains(actual) {
+            return
+        }
+
+        // Reapply the exact tile before falling back to the frame an app
+        // actually permits. This keeps grid rows aligned when AX readback is
+        // briefly stale after a resize.
         window.setFrame(target)
+
+        guard let final = window.frame(), !workArea.contains(final) else { return }
+        window.setFrame(Geometry.fitted(final, in: workArea))
     }
 
-    private func positionMatches(window: AXWindow, target: CGRect) -> Bool {
-        guard let actual = window.frame() else { return false }
-        let dx = abs(actual.origin.x - target.origin.x)
-        let dy = abs(actual.origin.y - target.origin.y)
-        return dx <= Self.matchTolerance && dy <= Self.matchTolerance
+    private func frameMatches(_ actual: CGRect, target: CGRect) -> Bool {
+        Geometry.frameDistance(actual, target) <= Self.matchTolerance
     }
 }

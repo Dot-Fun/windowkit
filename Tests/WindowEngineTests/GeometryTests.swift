@@ -124,6 +124,23 @@ final class GeometryTests: XCTestCase {
         XCTAssertEqual(frames[3].maxY, frames[6].minY)
     }
 
+    func testGrid3TilesExactlyInDockReducedWorkArea() {
+        let workArea = CGRect(x: 0, y: 30, width: 1440, height: 790)
+        let cells: [WindowAction] = [
+            .grid3TopLeft, .grid3TopCenter, .grid3TopRight,
+            .grid3MiddleLeft, .grid3MiddleCenter, .grid3MiddleRight,
+            .grid3BottomLeft, .grid3BottomCenter, .grid3BottomRight
+        ]
+        let frames = cells.map { Geometry.targetFrame(for: $0, screen: workArea, current: .zero)! }
+
+        XCTAssertEqual(frames.reduce(frames[0]) { $0.union($1) }, workArea)
+        for i in 0..<frames.count {
+            for j in (i + 1)..<frames.count {
+                XCTAssertTrue(frames[i].intersection(frames[j]).isEmpty)
+            }
+        }
+    }
+
     // MARK: - Thirds
 
     func testThirdsTile() {
@@ -306,6 +323,23 @@ final class GeometryTests: XCTestCase {
         let r = Geometry.targetFrame(for: .smallerSize, screen: macbook, current: tiny)!
         XCTAssertGreaterThanOrEqual(r.width, Geometry.minimumWindowEdge)
         XCTAssertGreaterThanOrEqual(r.height, Geometry.minimumWindowEdge)
+    }
+
+    func testFittedFramePreservesSizeAndAvoidsBottomDock() {
+        let workArea = CGRect(x: 0, y: 30, width: 1440, height: 790)
+        let actual = CGRect(x: 100, y: 600, width: 500, height: 300)
+
+        XCTAssertEqual(
+            Geometry.fitted(actual, in: workArea),
+            CGRect(x: 100, y: 520, width: 500, height: 300)
+        )
+    }
+
+    func testFittedFrameShrinksOnlyWhenItCannotFit() {
+        let workArea = CGRect(x: 0, y: 30, width: 1440, height: 790)
+        let actual = CGRect(x: -40, y: -50, width: 1600, height: 900)
+
+        XCTAssertEqual(Geometry.fitted(actual, in: workArea), workArea)
     }
 
     // MARK: - Non-geometric actions return nil
