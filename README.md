@@ -27,11 +27,11 @@ WindowKit is a lightweight **menubar app for macOS** that snaps the focused wind
 
 - **Free & open source** — Apache 2.0 licensed, no paywall, no telemetry, no account required.
 - **3×3 spatial grid** — `U / I / O`, `J / K / L`, `M / , / .` map to the 9 screen positions. The keys' physical layout *is* the layout of the snap targets.
-- **Multi-tap cycles** — tap the same shortcut twice/thrice/four times to progressively enlarge the window at that anchor. `⌘⌥I` once = top-center 1/9; twice = top 1/3; three times = top 1/2; four times = top 2/3.
+- **Spatial-key cycles** — repeat a grid shortcut to cycle anchored layouts. For example, `⌘⌥I` cycles top half → top third → top two-thirds → top-center 1/9.
 - **Apple Silicon native** — arm64 build for M1 / M2 / M3 / M4 Macs on macOS 14 Sonoma or later.
 - **Works with Electron apps** — Chrome, Discord, Cursor, VSCode, Slack. A one-time `AXEnhancedUserInterface` nudge per app per launch handles Chromium's usual Accessibility API quirks.
 - **Dock-aware placement** — windows never cover a pinned Dock. Auto-hide Dock is handled the way macOS expects.
-- **Configurable tap window** — 150 ms – 1 s in Preferences, default 700 ms.
+- **Geometry-driven cycles** — repeat a spatial shortcut whenever you like; the current window layout determines the next step.
 
 ## Compared to other macOS window managers
 
@@ -65,7 +65,7 @@ Use **Rectangle** if you love drag-to-snap. Use **Magnet** or **Moom** if you wa
 
 ### Menubar menu
 
-- **Preferences…** — rebind shortcuts, adjust the multi-tap window (150 ms – 1 s, default 700 ms)
+- **Preferences…** — configure, rebind, or clear every window action shortcut
 - **About WindowKit** — logo + version
 - **Launch at Login** — toggle auto-start with macOS
 - **Debug → Copy Focused Window Info** — copies bundle ID / AX role / settable flags to the clipboard for bug reports
@@ -105,35 +105,46 @@ swift run WindowKit
 swift test
 ```
 
-## Default Hotkeys
+## Hotkey configuration
 
-Legend: ⌃ = Control, ⌥ = Option, ⌘ = Command, ⇧ = Shift.
+Legend: ⌃ = Control, ⌥ = Option, ⌘ = Command, ⇧ = Shift. The tables list every action available in **Preferences → Keyboard Shortcuts**. `—` means the action is unassigned by default; assign any shortcut or clear an existing one there. WindowKit keeps one action per shortcut.
 
-### Halves
-| Action | Shortcut |
+### Halves and quadrants
+
+| Action | Default shortcut |
 |---|---|
 | Left half | ⌃⌥ ← |
 | Right half | ⌃⌥ → |
 | Top half | ⌃⌥ ↑ |
 | Bottom half | ⌃⌥ ↓ |
+| Top-left quadrant | ⌃⌥ 1 |
+| Top-right quadrant | ⌃⌥ 2 |
+| Bottom-left quadrant | ⌃⌥ 3 |
+| Bottom-right quadrant | ⌃⌥ 4 |
 
-### Quadrants
-| Action | Shortcut |
-|---|---|
-| Top-left | ⌃⌥ 1 |
-| Top-right | ⌃⌥ 2 |
-| Bottom-left | ⌃⌥ 3 |
-| Bottom-right | ⌃⌥ 4 |
+### Thirds, two-thirds, and sixths
 
-### Thirds
-| Action | Shortcut |
+| Action | Default shortcut |
 |---|---|
-| First third | ⌃⌥⌘ ← |
+| First third (left) | ⌃⌥⌘ ← |
 | Center third | ⌃⌥⌘ ↑ |
-| Last third | ⌃⌥⌘ → |
+| Last third (right) | ⌃⌥⌘ → |
+| First two-thirds (left) | — |
+| Last two-thirds (right) | — |
+| Top third | — |
+| Bottom third | — |
+| Top two-thirds | — |
+| Bottom two-thirds | — |
+| Top-left sixth | — |
+| Top-center sixth | — |
+| Top-right sixth | — |
+| Bottom-left sixth | — |
+| Bottom-center sixth | — |
+| Bottom-right sixth | — |
 
-### 3×3 Spatial Grid (⌘⌥ + key)
-Keys mirror the cell's on-screen position:
+### 3×3 spatial grid
+
+All grid shortcuts use ⌘⌥. The letter layout mirrors the target position:
 
 ```
 U I O
@@ -141,51 +152,33 @@ J K L
 M , .
 ```
 
-| Action | Shortcut |
-|---|---|
-| Top-left | ⌘⌥ U |
-| Top-center | ⌘⌥ I |
-| Top-right | ⌘⌥ O |
-| Middle-left | ⌘⌥ J |
-| Middle-center | ⌘⌥ K |
-| Middle-right | ⌘⌥ L |
-| Bottom-left | ⌘⌥ M |
-| Bottom-center | ⌘⌥ , |
-| Bottom-right | ⌘⌥ . |
-
-### Sizing
-| Action | Shortcut |
-|---|---|
-| Fullscreen | ⌃⌥ F |
-| Center | ⌃⌥ C |
-| Almost maximize (90%) | ⌃⌥ = |
-
-### History
-| Action | Shortcut |
-|---|---|
-| Undo window change | ⌃⌥ Z |
-| Redo | ⌃⌥⇧ Z |
-
-### Displays
-| Action | Shortcut |
-|---|---|
-| Move to next display | ⌃⌥⌘ ] |
-| Move to previous display | ⌃⌥⌘ [ |
-
-All shortcuts are configurable in **Preferences → Keyboard Shortcuts** (⌘, from the menu bar).
-
-### Multi-tap cycles
-
-Each 3×3 grid key starts a cycle. Tapping the same key again within the **tap window** (default 700 ms, configurable 150 ms – 1 s in **Preferences → Shortcuts → Tap Behavior**) advances to a larger size anchored at that position. After the last step, another tap wraps back to the 1/9 cell. After the tap window elapses with no press, the counter resets and the next tap is a 1-tap again.
-
-| Position | Keys | Cycle (1-tap → last) |
+| Action | Default shortcut | Cycle from a non-matching layout |
 |---|---|---|
-| Corners | U, O, M, . | 1/9 cell → matching quadrant (1/2 × 1/2) → 2/3 × 2/3 anchored at that corner |
-| Top / bottom edges | I, , | 1/9 cell → top/bottom 1/3 band → top/bottom 1/2 → top/bottom 2/3 |
-| Side edges | J, L | 1/9 cell → left/right 1/3 column → left/right 1/2 → left/right 2/3 |
-| Center | K | 1/9 cell → 1/3 center column → fullscreen |
+| Top-left | ⌘⌥ U | top-left 1/4 → top-left 1/9 → top-left 2/3 × 2/3 |
+| Top-center | ⌘⌥ I | top 1/2 → top 1/3 → top 2/3 → top-center 1/9 |
+| Top-right | ⌘⌥ O | top-right 1/4 → top-right 1/9 → top-right 2/3 × 2/3 |
+| Middle-left | ⌘⌥ J | left 1/2 → left 1/3 → left 2/3 → middle-left 1/9 |
+| Middle-center | ⌘⌥ K | fullscreen → center 1/9 → center 1/3 column |
+| Middle-right | ⌘⌥ L | right 1/2 → right 1/3 → right 2/3 → middle-right 1/9 |
+| Bottom-left | ⌘⌥ M | bottom-left 1/4 → bottom-left 1/9 → bottom-left 2/3 × 2/3 |
+| Bottom-center | ⌘⌥ , | bottom 1/2 → bottom 1/3 → bottom 2/3 → bottom-center 1/9 |
+| Bottom-right | ⌘⌥ . | bottom-right 1/4 → bottom-right 1/9 → bottom-right 2/3 × 2/3 |
 
-Tapping a *different* key resets the cycle — each key tracks its own counter.
+Cycles are based on the focused window's current geometry, not press timing. Repeating a grid shortcut advances from its current cycle step; the final step wraps to the first. Moving or resizing the window outside a cycle layout restarts at the first step.
+
+### Sizing, displays, and history
+
+| Action | Default shortcut | Behavior |
+|---|---|---|
+| Fullscreen | ⌃⌥ F | Fill the visible screen area |
+| Almost maximize | ⌃⌥ = | Center at 90% of the visible screen area |
+| Center on screen | ⌃⌥ C | Keep the current size and center it |
+| Make larger | — | Grow by 5% of the visible screen in each dimension |
+| Make smaller | — | Shrink by 5% of the visible screen in each dimension, down to 100 px per edge |
+| Move to next display | ⌃⌥⌘ ] | Preserve relative position and size on the next display |
+| Move to previous display | ⌃⌥⌘ [ | Preserve relative position and size on the previous display |
+| Undo last move | ⌃⌥ Z | Restore the prior window frame |
+| Redo last move | ⌃⌥⇧ Z | Reapply the last undone window frame |
 
 ### Known behaviors
 
@@ -240,7 +233,7 @@ macOS requires Accessibility access for any app that reads or moves other apps' 
 Yes, functionally. Magnet and Moom are polished paid apps (roughly $5 – $10 on the Mac App Store); WindowKit is free and open source. If you want drag-to-snap edges or app-specific autolayout rules, Magnet or Moom are still better choices. If you want keyboard-first minimalism, WindowKit is the lightest option.
 
 ### What's different about the 3×3 grid and multi-tap cycles?
-Most window managers think in halves and quadrants. WindowKit adds a third mental tier: nine positional cells whose keyboard shortcuts are arranged *spatially* — the letters' physical position on your keyboard matches the cell's position on screen. Holding `⌘⌥` and pressing `M` snaps the window to the bottom-left 1/9; pressing `M` a second time within the tap window grows it to the bottom-left 1/4 quadrant; a third tap grows it to 2/3 × 2/3 in that corner. Center-row keys `I`, `K`, `,` grow in bands and columns.
+Most window managers think in halves and quadrants. WindowKit adds a third mental tier: nine positional cells whose keyboard shortcuts are arranged *spatially* — the letters' physical position on your keyboard matches the cell's position on screen. Repeating a grid shortcut cycles its matching layouts with no timing requirement: `⌘⌥M` goes bottom-left 1/4 → bottom-left 1/9 → bottom-left 2/3 × 2/3, while the edge keys `I`, `J`, `L`, and `,` also reach their respective 1/9 cells.
 
 ### Where's the source? Can I contribute?
 All of WindowKit is in this repository under Apache 2.0. Issues and PRs welcome. See [Project Layout](#project-layout) for the module map.
@@ -264,6 +257,7 @@ Unsigned local build. Not notarized. See unsigned-build caveat above.
 
 ## Release history
 
+- **v0.2.8** — Completed the 3×3 edge-grid cycles: `⌘⌥I`, `⌘⌥J`, `⌘⌥L`, and `⌘⌥,` now end at their top-center, middle-left, middle-right, and bottom-center 1/9 cells.
 - **v0.2.7** — Reliable Discord/Electron window management: replaced the permanent `AXEnhancedUserInterface` nudge (which actually *breaks* positioning — it's VoiceOver's attribute) with Rectangle's disable-around-the-write technique, and wakes Chromium's a11y tree via the side-effect-free `AXManualAccessibility`. Also fixed a false "Accessibility grant is out of date" warning that flapped (and disarmed hotkeys) whenever a busy app like Discord-in-a-call was focused — the trust canary no longer treats `kAXErrorCannotComplete` as a dead grant.
 - **v0.2.6** — Simplified edge tap cycles.
 - **v0.2.5** — Big→small tap ordering; GitHub update checker.
