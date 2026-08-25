@@ -62,9 +62,9 @@ struct WindowKitApp: App {
             }
             .keyboardShortcut("q", modifiers: .command)
         } label: {
+            // No tint: SwiftUI renders the label as a template image, so it
+            // tracks the menu bar — white on dark, black on light.
             Image(systemName: "rectangle.3.group")
-                .symbolRenderingMode(.palette)
-                .foregroundStyle(dotfunOrange)
                 .task { updateChecker.start() }
         }
         .menuBarExtraStyle(.menu)
