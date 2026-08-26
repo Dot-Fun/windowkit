@@ -218,9 +218,9 @@ private struct ThreeByThreeGridDiagram: View {
                 }
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text("3×3 Spatial Layout")
+                Text("3×3 Spatial Layout — defaults")
                     .font(.caption.weight(.medium))
-                Text("Each key snaps the focused window to that cell. The keys mirror the cell's position on screen — top-left U, center K, bottom-right period.")
+                Text("Each key snaps the focused window to that cell, mirroring the cell's position on screen. These are the default keys; the field on each row below is what's actually bound.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
