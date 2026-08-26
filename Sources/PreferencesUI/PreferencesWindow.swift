@@ -50,8 +50,31 @@ struct DotfunLogo: View {
         colorScheme == .dark ? "DotfunLogoDark" : "DotfunLogo"
     }
 
+    /// Resolve the logo without ever reaching outside the app.
+    ///
+    /// SwiftPM's generated `Bundle.module` accessor checks
+    /// `Bundle.main.bundleURL/<name>.bundle` and then an **absolute path into
+    /// .build** — and `fatalError`s if neither exists. In an installed .app
+    /// that means either reading from the source checkout at runtime (macOS
+    /// prompts for the volume) or crashing outright when that volume is gone.
+    /// So inside an .app we look only at our own Resources and accept the
+    /// text fallback; `Bundle.module` is consulted only when running straight
+    /// from SwiftPM, where it resolves locally.
+    private var logoURL: URL? {
+        if let url = Bundle.main.url(forResource: resourceName, withExtension: "png") {
+            return url
+        }
+        if let nested = Bundle.main.url(forResource: "WindowKit_PreferencesUI", withExtension: "bundle"),
+           let bundle = Bundle(url: nested),
+           let url = bundle.url(forResource: resourceName, withExtension: "png") {
+            return url
+        }
+        guard Bundle.main.bundleURL.pathExtension != "app" else { return nil }
+        return Bundle.module.url(forResource: resourceName, withExtension: "png")
+    }
+
     var body: some View {
-        if let url = Bundle.module.url(forResource: resourceName, withExtension: "png"),
+        if let url = logoURL,
            let nsImage = NSImage(contentsOf: url) {
             Image(nsImage: nsImage)
                 .resizable()

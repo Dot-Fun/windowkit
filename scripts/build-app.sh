@@ -33,6 +33,22 @@ if [[ -f "$ROOT/App/AppIcon.icns" ]]; then
   cp "$ROOT/App/AppIcon.icns" "$CONTENTS/Resources/AppIcon.icns"
 fi
 
+# SwiftPM resource bundles (e.g. WindowKit_PreferencesUI.bundle) must live in
+# Contents/Resources, because `Bundle.module` checks Bundle.main.resourceURL
+# first. Omit them and the generated accessor falls through to an absolute
+# path inside .build — so an installed .app reaches back into the source
+# checkout at runtime, and macOS prompts for access to whatever volume that
+# is. Copy them in so the app is self-contained.
+shopt -s nullglob
+bundles=("$BIN_PATH"/*.bundle)
+if (( ${#bundles[@]} )); then
+  for bundle in "${bundles[@]}"; do
+    echo "==> bundling $(basename "$bundle")"
+    cp -R "$bundle" "$CONTENTS/Resources/"
+  done
+fi
+shopt -u nullglob
+
 # Ad-hoc sign so Gatekeeper and the AX subsystem get a stable code identity
 # (still unsigned in the distribution sense; re-granting AX per rebuild still applies).
 codesign --force --sign - "$APP" >/dev/null 2>&1 || true
