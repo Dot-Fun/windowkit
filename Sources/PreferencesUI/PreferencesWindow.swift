@@ -1,4 +1,5 @@
 import AppKit
+import LayoutProfiles
 import PreferencesStore
 import SwiftUI
 import WindowEngine
@@ -6,9 +7,11 @@ import WindowEngine
 public struct PreferencesWindow: View {
     @StateObject private var model: PreferencesViewModel
     @ObservedObject private var store: PreferencesStore
+    private let layouts: LayoutProfileStore
 
-    public init(store: PreferencesStore) {
+    public init(store: PreferencesStore, layouts: LayoutProfileStore) {
         self.store = store
+        self.layouts = layouts
         _model = StateObject(wrappedValue: PreferencesViewModel(store: store))
     }
 
@@ -18,6 +21,8 @@ public struct PreferencesWindow: View {
                 header
 
                 TapBehaviorCard(store: store)
+
+                LayoutsCard(store: layouts)
 
                 ForEach(ActionCatalog.groups) { group in
                     ActionGroupSection(

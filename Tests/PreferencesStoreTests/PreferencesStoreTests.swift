@@ -30,12 +30,15 @@ final class PreferencesStoreTests: XCTestCase {
 
     func testConflictDetection() {
         let store = PreferencesStore(defaults: isolatedDefaults())
-        let taken = store.bindings[.leftHalf]!
-        let conflict = store.set(taken, for: .rightHalf)
-        XCTAssertEqual(conflict?.existingAction, .leftHalf)
+        // Defaults are empty by design, so the test supplies its own binding.
+        let taken = Shortcut(keyCode: 6, modifiers: 0x900)
+        store.set(taken, for: .undo)
+
+        let conflict = store.set(taken, for: .redo)
+        XCTAssertEqual(conflict?.existingAction, .undo)
         XCTAssertEqual(conflict?.shortcut, taken)
         // Unchanged on conflict.
-        XCTAssertEqual(store.bindings[.rightHalf], DefaultBindings.spectacle[.rightHalf])
+        XCTAssertNil(store.bindings[.redo])
     }
 
     func testExportImportRoundTrip() throws {
@@ -51,9 +54,30 @@ final class PreferencesStoreTests: XCTestCase {
 
     func testSetNilClearsBinding() {
         let store = PreferencesStore(defaults: isolatedDefaults())
-        XCTAssertNotNil(store.bindings[.leftHalf])
-        store.set(nil, for: .leftHalf)
-        XCTAssertNil(store.bindings[.leftHalf])
+        store.set(Shortcut(keyCode: 6, modifiers: 0x900), for: .undo)
+        XCTAssertNotNil(store.bindings[.undo])
+        store.set(nil, for: .undo)
+        XCTAssertNil(store.bindings[.undo])
+    }
+
+    /// Placement lives entirely in the numpad sequence language, which
+    /// `HotkeyManager` arms independently of this map — so shipping zero
+    /// default bindings is correct, not a missing-defaults bug.
+    func testNoDiscreteHotkeysAreBoundByDefault() {
+        XCTAssertTrue(DefaultBindings.spectacle.isEmpty)
+        let store = PreferencesStore(defaults: isolatedDefaults())
+        XCTAssertTrue(store.bindings.isEmpty)
+    }
+
+    /// A binding the user adds by hand must still survive a reload.
+    func testManualBindingSurvivesReload() {
+        let defaults = isolatedDefaults()
+        let store = PreferencesStore(defaults: defaults)
+        let custom = Shortcut(keyCode: 6, modifiers: 0x900)
+        store.set(custom, for: .undo)
+
+        let reload = PreferencesStore(defaults: defaults)
+        XCTAssertEqual(reload.bindings[.undo], custom)
     }
 
     func testTapWindowMsDefaultsToSpec() {
