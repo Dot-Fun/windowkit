@@ -10,6 +10,7 @@ public struct Conflict: Equatable, Sendable {
 public final class PreferencesStore: ObservableObject {
     private static let defaultsKey = "WindowKit.bindings.v1"
     private static let tapWindowKey = "WindowKit.tapWindowMs"
+    private static let tenKeyKey = "WindowKit.tenKeyAvailable"
 
     @Published public private(set) var bindings: [WindowAction: Shortcut]
 
@@ -28,6 +29,21 @@ public final class PreferencesStore: ObservableObject {
         }
     }
 
+    /// Whether a numeric keypad is available. Off means you're on a laptop
+    /// keyboard, and the grid moves to U/I/O · J/K/L · M/,/. — same language,
+    /// same cells, different keys.
+    @Published public var tenKeyAvailable: Bool = true {
+        didSet {
+            guard tenKeyAvailable != oldValue else { return }
+            defaults.set(tenKeyAvailable, forKey: Self.tenKeyKey)
+        }
+    }
+
+    /// The key set the sequence language listens on, derived from `tenKeyAvailable`.
+    public var sequenceKeyLayout: SequenceKeyLayout {
+        tenKeyAvailable ? .numpad : .letters
+    }
+
     private let defaults: UserDefaults
 
     public init(defaults: UserDefaults = .standard) {
@@ -35,6 +51,8 @@ public final class PreferencesStore: ObservableObject {
         self.bindings = DefaultBindings.spectacle
         let stored = defaults.object(forKey: Self.tapWindowKey) as? Int
         self.tapWindowMs = min(max(stored ?? Self.tapWindowDefaultMs, Self.tapWindowMinMs), Self.tapWindowMaxMs)
+        // Absent key => true: a full-size keyboard is the default assumption.
+        self.tenKeyAvailable = defaults.object(forKey: Self.tenKeyKey) as? Bool ?? true
         load()
     }
 

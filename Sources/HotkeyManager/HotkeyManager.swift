@@ -32,6 +32,7 @@ public final class HotkeyManager {
     private var numpadRegistrations: [UInt32: EventHotKeyRef] = [:]
     private var idToDigit: [UInt32: Int] = [:]
     private var numpadModifiers: UInt32?
+    private var sequenceLayout: SequenceKeyLayout = .numpad
 
     private var eventHandlerRef: EventHandlerRef?
     private var nextID: UInt32 = 1
@@ -83,12 +84,14 @@ public final class HotkeyManager {
         registerNumpadKeys()
     }
 
-    /// Enable the numpad sequence language under `modifiers` (e.g. ⌃⌥⌘).
-    /// Registration happens on the next `apply(bindings:)` (which always
-    /// re-registers numpad keys), so callers should pair this with `apply`.
-    /// Keeping registration in one place avoids double-registering the keys.
-    public func armNumpadSequence(modifiers: UInt32) {
+    /// Enable the sequence language under `modifiers` (e.g. ⌃⌥⌘), driven by
+    /// `layout`'s key set. Registration happens on the next `apply(bindings:)`
+    /// (which always re-registers the sequence keys), so callers should pair
+    /// this with `apply`. Keeping registration in one place avoids
+    /// double-registering the keys.
+    public func armNumpadSequence(modifiers: UInt32, layout: SequenceKeyLayout = .numpad) {
         numpadModifiers = modifiers
+        sequenceLayout = layout
     }
 
     public func clear() {
@@ -113,19 +116,15 @@ public final class HotkeyManager {
     private func registerNumpadKeys() {
         guard let mods = numpadModifiers else { return }
         clearNumpadKeys()
-        // Numpad laid out as a 3×3 map of the screen (top row 7/8/9).
-        let keypad: [(key: Int, digit: Int)] = [
-            (kVK_ANSI_Keypad1, 1), (kVK_ANSI_Keypad2, 2), (kVK_ANSI_Keypad3, 3),
-            (kVK_ANSI_Keypad4, 4), (kVK_ANSI_Keypad5, 5), (kVK_ANSI_Keypad6, 6),
-            (kVK_ANSI_Keypad7, 7), (kVK_ANSI_Keypad8, 8), (kVK_ANSI_Keypad9, 9),
-        ]
-        for entry in keypad {
+        // A 3×3 map of the screen (top row 7/8/9), on whichever key set the
+        // current layout uses — numpad on a full keyboard, U/I/O on a laptop.
+        for entry in sequenceLayout.keys {
             let id = nextID
             nextID += 1
             let hkID = EventHotKeyID(signature: HotkeyManager.signature, id: id)
             var ref: EventHotKeyRef?
             let status = RegisterEventHotKey(
-                UInt32(entry.key), mods, hkID, GetApplicationEventTarget(), 0, &ref
+                UInt32(entry.keyCode), mods, hkID, GetApplicationEventTarget(), 0, &ref
             )
             guard status == noErr, let ref else { continue }
             numpadRegistrations[id] = ref

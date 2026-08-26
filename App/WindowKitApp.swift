@@ -151,6 +151,21 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
             }
             .store(in: &cancellables)
 
+        // Flipping the 10-key toggle swaps the sequence key set live — no
+        // relaunch. Re-arm with the new layout, then re-apply so
+        // `registerNumpadKeys` picks it up.
+        store.$tenKeyAvailable
+            .dropFirst()
+            .sink { [weak self] tenKey in
+                guard let self, self.hotkeysArmed else { return }
+                self.hotkeys.armNumpadSequence(
+                    modifiers: self.numpadModifiers,
+                    layout: tenKey ? .numpad : .letters
+                )
+                self.hotkeys.apply(bindings: self.store.bindings)
+            }
+            .store(in: &cancellables)
+
         displayMonitor.onSettled = { [weak self] in
             self?.autoRestoreLayoutIfConfigured()
         }
@@ -186,7 +201,7 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
 
     private func armHotkeys() {
         guard !hotkeysArmed else { return }
-        hotkeys.armNumpadSequence(modifiers: numpadModifiers)
+        hotkeys.armNumpadSequence(modifiers: numpadModifiers, layout: store.sequenceKeyLayout)
         hotkeys.apply(bindings: store.bindings)
         numpad.start()
         hotkeysArmed = true

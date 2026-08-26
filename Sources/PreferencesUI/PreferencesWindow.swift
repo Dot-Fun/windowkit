@@ -5,50 +5,37 @@ import SwiftUI
 import WindowEngine
 
 public struct PreferencesWindow: View {
-    @StateObject private var model: PreferencesViewModel
     @ObservedObject private var store: PreferencesStore
     private let layouts: LayoutProfileStore
 
     public init(store: PreferencesStore, layouts: LayoutProfileStore) {
         self.store = store
         self.layouts = layouts
-        _model = StateObject(wrappedValue: PreferencesViewModel(store: store))
     }
 
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 header
-
+                GridKeysCard(store: store)
                 TapBehaviorCard(store: store)
-
                 LayoutsCard(store: layouts)
-
-                ForEach(ActionCatalog.groups) { group in
-                    ActionGroupSection(
-                        group: group,
-                        bindings: model.bindings,
-                        conflicts: model.conflicts,
-                        onShortcutChange: { action, sc in
-                            model.set(sc, for: action)
-                        }
-                    )
-                }
             }
             .padding(20)
         }
-        .frame(minWidth: 560, minHeight: 560)
+        .frame(minWidth: 560, minHeight: 480)
     }
 
     private var header: some View {
         HStack(alignment: .center, spacing: 14) {
             DotfunLogo(height: 28)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Keyboard Shortcuts")
+                Text("WindowKit")
                     .font(.title2.weight(.semibold))
-                Text("Click a shortcut field, then press the key combination you want. Press ⌫ to clear, ⎋ to cancel.")
+                Text("Every layout comes from one grid: hold ⌃⌥⌘ and tap cells. There are no other shortcuts to learn.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 0)
         }
@@ -78,140 +65,65 @@ struct DotfunLogo: View {
     }
 }
 
-@MainActor
-final class PreferencesViewModel: ObservableObject {
-    @Published var bindings: [WindowAction: Shortcut]
-    @Published var conflicts: Set<WindowAction> = []
+/// The grid card: the 10-key toggle, the keycaps it selects, and how to read them.
+private struct GridKeysCard: View {
+    @ObservedObject var store: PreferencesStore
 
-    private let store: PreferencesStore
-
-    init(store: PreferencesStore) {
-        self.store = store
-        store.load()
-        self.bindings = store.bindings
-        recomputeConflicts()
-    }
-
-    func set(_ shortcut: Shortcut?, for action: WindowAction) {
-        if let sc = shortcut {
-            for (other, existing) in bindings where other != action && existing == sc {
-                bindings[other] = nil
-                store.set(nil, for: other)
-            }
-            bindings[action] = sc
-        } else {
-            bindings[action] = nil
-        }
-        store.set(shortcut, for: action)
-        store.save()
-        recomputeConflicts()
-    }
-
-    private func recomputeConflicts() {
-        var seen: [Shortcut: [WindowAction]] = [:]
-        for (action, sc) in bindings {
-            seen[sc, default: []].append(action)
-        }
-        conflicts = Set(seen.values.filter { $0.count > 1 }.flatMap { $0 })
-    }
-}
-
-private struct ActionGroupSection: View {
-    let group: ActionGroup
-    let bindings: [WindowAction: Shortcut]
-    let conflicts: Set<WindowAction>
-    let onShortcutChange: (WindowAction, Shortcut?) -> Void
+    private var layout: SequenceKeyLayout { store.sequenceKeyLayout }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(group.title)
-                    .font(.headline)
-                if let subtitle = group.subtitle {
-                    Text(subtitle)
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Grid keys")
+                .font(.headline)
+
+            Toggle(isOn: $store.tenKeyAvailable) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Numeric keypad available")
+                    Text(store.tenKeyAvailable
+                         ? "Using the 10-key, which is already a 3×3 map of the screen."
+                         : "Laptop mode — the grid moves to U/I/O · J/K/L · M/,/. under your right hand.")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-            }
-
-            if group.showsGridDiagram {
-                ThreeByThreeGridDiagram()
-                    .padding(.bottom, 4)
-            }
-
-            if !group.actions.isEmpty {
-                VStack(spacing: 0) {
-                    ForEach(Array(group.actions.enumerated()), id: \.element) { index, action in
-                        if index > 0 { Divider() }
-                        ActionRow(
-                            action: action,
-                            shortcut: bindings[action],
-                            hasConflict: conflicts.contains(action),
-                            onChange: { sc in onShortcutChange(action, sc) }
-                        )
-                    }
-                }
-                .background(Color(nsColor: .controlBackgroundColor))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
-                )
-            }
-        }
-    }
-}
-
-private struct ActionRow: View {
-    let action: WindowAction
-    let shortcut: Shortcut?
-    let hasConflict: Bool
-    let onChange: (Shortcut?) -> Void
-
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(ActionCatalog.displayName(for: action))
-                    .font(.body)
-                if let caption = ActionCatalog.cycleCaption(for: action) {
-                    Text(caption)
-                        .font(.caption2)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
-                if hasConflict {
-                    Label("Conflicts with another shortcut", systemImage: "exclamationmark.triangle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.orange)
-                }
             }
-            Spacer()
-            ShortcutRecorderView(shortcut: Binding(
-                get: { shortcut },
-                set: { onChange($0) }
-            ))
+            .toggleStyle(.switch)
+
+            Divider()
+
+            GridDiagram(layout: layout)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(nsColor: .windowBackgroundColor))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+        .overlay(
+            RoundedRectangle(cornerRadius: 6)
+                .stroke(Color(nsColor: .separatorColor), lineWidth: 0.5)
+        )
     }
 }
 
-/// Mini 3×3 diagram showing the numpad 7/8/9, 4/5/6, 1/2/3 spatial mapping.
-private struct ThreeByThreeGridDiagram: View {
-    private let labels: [[String]] = [
-        ["7", "8", "9"],
-        ["4", "5", "6"],
-        ["1", "2", "3"],
-    ]
+/// Mini 3×3 diagram of the active key set. Renders from `SequenceKeyLayout`, so
+/// the keycaps shown are always the keys actually registered.
+private struct GridDiagram: View {
+    let layout: SequenceKeyLayout
+
+    /// Example keys in prose, resolved through the layout rather than hardcoded.
+    private var topLeft: String { layout.keycap(forDigit: 7) }
+    private var center: String { layout.keycap(forDigit: 5) }
+    private var topRight: String { layout.keycap(forDigit: 9) }
+    private var bottomLeft: String { layout.keycap(forDigit: 1) }
+    private var bottomRight: String { layout.keycap(forDigit: 3) }
+    private var middleLeft: String { layout.keycap(forDigit: 4) }
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             VStack(spacing: 3) {
-                ForEach(0..<3, id: \.self) { row in
+                ForEach(Array(layout.keycapRows.enumerated()), id: \.offset) { _, row in
                     HStack(spacing: 3) {
-                        ForEach(0..<3, id: \.self) { col in
-                            Text(labels[row][col])
+                        ForEach(Array(row.enumerated()), id: \.offset) { _, cap in
+                            Text(cap)
                                 .font(.system(size: 11, weight: .semibold, design: .monospaced))
                                 .frame(width: 28, height: 22)
                                 .background(Color(nsColor: .quaternaryLabelColor).opacity(0.4))
@@ -225,22 +137,24 @@ private struct ThreeByThreeGridDiagram: View {
                 }
             }
             VStack(alignment: .leading, spacing: 4) {
-                Text("Numpad = the screen")
+                Text("These keys are the screen")
                     .font(.caption.weight(.medium))
-                Text("Hold ⌃⌥⌘ and tap cells, then release (or pause):\n• One key → that 1/9 cell (7 = top-left, 5 = center).\n• Two keys → the box between them: 7·9 = top third, 7·1 = left third, 7·5 = top-left 2×2, 7·3 = fullscreen.\n• Double-tap an edge for a half (4·4 = left), a corner for a quarter (7·7). 5·5 = maximize.")
+                Text("""
+                     Hold ⌃⌥⌘ and tap cells, then release (or pause):
+                     • One key → that 1/9 cell (\(topLeft) = top-left, \(center) = center).
+                     • Two keys → the box between them: \(topLeft)·\(topRight) = top third, \(topLeft)·\(bottomLeft) = left third, \(topLeft)·\(center) = top-left 2×2, \(topLeft)·\(bottomRight) = fullscreen.
+                     • Double-tap an edge for a half (\(middleLeft)·\(middleLeft) = left), a corner for a quarter (\(topLeft)·\(topLeft)). \(center)·\(center) = maximize.
+                     """)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
         }
-        .padding(10)
-        .background(Color(nsColor: .windowBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: 6))
     }
 }
 
-/// "Tap Behavior" card: explains multi-tap cycles and exposes the tap-window slider.
+/// "Tap Behavior" card: how long a sequence stays open before it commits.
 private struct TapBehaviorCard: View {
     @ObservedObject var store: PreferencesStore
 
@@ -251,12 +165,17 @@ private struct TapBehaviorCard: View {
         )
     }
 
+    private var example: String {
+        let l = store.sequenceKeyLayout
+        return "\(l.keycap(forDigit: 7)) then \(l.keycap(forDigit: 3))"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Numpad sequence timing")
+            Text("Sequence timing")
                 .font(.headline)
 
-            Text("When you type a numpad region (e.g. 7 then 3), WindowKit snaps as soon as you release ⌃⌥⌘ — or after this pause, whichever comes first.")
+            Text("When you type a region (e.g. \(example)), WindowKit snaps as soon as you release ⌃⌥⌘ — or after this pause, whichever comes first.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
