@@ -18,34 +18,10 @@ public struct ActionGroup: Identifiable, Hashable {
 }
 
 public enum ActionCatalog {
+    /// The 3×3 grid is the only bound layout, so it is the only group with
+    /// shortcut rows. Halves/thirds/quadrants still exist as geometry — they
+    /// are reached by tapping a grid key again, not by their own hotkey.
     public static let groups: [ActionGroup] = [
-        ActionGroup(
-            id: "halves",
-            title: "Halves",
-            actions: [.leftHalf, .rightHalf, .topHalf, .bottomHalf]
-        ),
-        ActionGroup(
-            id: "quadrants",
-            title: "Quadrants (2×2)",
-            actions: [.topLeft, .topRight, .bottomLeft, .bottomRight]
-        ),
-        ActionGroup(
-            id: "thirds",
-            title: "Thirds & Two-Thirds",
-            actions: [
-                .firstThird, .centerThird, .lastThird,
-                .firstTwoThirds, .lastTwoThirds,
-                .topThird, .bottomThird, .topTwoThirds, .bottomTwoThirds,
-            ]
-        ),
-        ActionGroup(
-            id: "sixths",
-            title: "Sixths (2×3)",
-            actions: [
-                .topLeftSixth, .topCenterSixth, .topRightSixth,
-                .bottomLeftSixth, .bottomCenterSixth, .bottomRightSixth,
-            ]
-        ),
         ActionGroup(
             id: "grid3",
             title: "3×3 Grid",
@@ -56,21 +32,6 @@ public enum ActionCatalog {
                 .grid3BottomLeft, .grid3BottomCenter, .grid3BottomRight,
             ],
             showsGridDiagram: true
-        ),
-        ActionGroup(
-            id: "sizing",
-            title: "Fullscreen, Center & Sizing",
-            actions: [.fullscreen, .almostMaximize, .center, .largerSize, .smallerSize]
-        ),
-        ActionGroup(
-            id: "displays",
-            title: "Displays",
-            actions: [.nextDisplay, .previousDisplay]
-        ),
-        ActionGroup(
-            id: "history",
-            title: "History",
-            actions: [.undo, .redo]
         ),
     ]
 

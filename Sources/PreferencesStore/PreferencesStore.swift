@@ -32,18 +32,27 @@ public final class PreferencesStore: ObservableObject {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
-        self.bindings = DefaultBindings.spectacle
+        self.bindings = DefaultBindings.grid3
         let stored = defaults.object(forKey: Self.tapWindowKey) as? Int
         self.tapWindowMs = min(max(stored ?? Self.tapWindowDefaultMs, Self.tapWindowMinMs), Self.tapWindowMaxMs)
         load()
     }
 
+    /// Loads persisted bindings, falling back to defaults when nothing usable
+    /// is stored.
+    ///
+    /// An *empty* decode counts as unusable and falls back too. A persisted
+    /// `{}` is otherwise unrecoverable from the keyboard: it registers zero
+    /// hotkeys, so the app looks dead with no way to fix it except opening
+    /// Preferences by mouse. The trade is that you cannot deliberately run
+    /// with every shortcut cleared — which would be an app that does nothing.
     public func load() {
         guard
             let data = defaults.data(forKey: Self.defaultsKey),
-            let decoded = try? Self.decode(data)
+            let decoded = try? Self.decode(data),
+            !decoded.isEmpty
         else {
-            bindings = DefaultBindings.spectacle
+            bindings = DefaultBindings.grid3
             return
         }
         bindings = decoded
@@ -73,7 +82,7 @@ public final class PreferencesStore: ObservableObject {
     }
 
     public func restoreDefaults() {
-        bindings = DefaultBindings.spectacle
+        bindings = DefaultBindings.grid3
         commit()
     }
 

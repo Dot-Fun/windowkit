@@ -15,7 +15,7 @@ Verification is split into **programmatic** (deterministic, re-runnable in CI) a
 | P4 | `.app` bundle assembles | ✅ PASS | `build/WindowKit.app/Contents/{MacOS/WindowKit, Info.plist, Resources/Assets.xcassets, _CodeSignature}` present. |
 | P5 | Bundle has ad-hoc signature | ✅ PASS | `codesign -dv` → `Identifier=co.dotfun.WindowKit`, `flags=0x2(adhoc)`, Mach-O thin arm64. |
 | P6 | `Info.plist` has `LSUIElement=true` and `NSAccessibilityUsageDescription` | ✅ PASS | Inspected; menubar-only app with AX usage string. |
-| P7 | `DefaultBindings.spectacle` covers every `WindowAction` that expects a default | ✅ PASS | Covered by `PreferencesStoreTests.testDefaultBindingsHaveNoInternalConflict`. |
+| P7 | `DefaultBindings.grid3` binds exactly the nine 3×3 grid cells, with no internal conflict | ✅ PASS | Covered by `PreferencesStoreTests.testDefaultBindingsHaveNoInternalConflict`. |
 | P8 | No shortcut collisions in defaults | ✅ PASS | Same test. `.lastThird` (⌃⌥⌘→) and display jumps (⌃⌥⌘]/[) deliberately disambiguated per plan. |
 | P9 | Preferences round-trip (set/clear/export/import) | ✅ PASS | `testShortcutCodableRoundTrip`, `testExportImportRoundTrip`, `testSetNilClearsBinding`, `testConflictDetection` all green. |
 

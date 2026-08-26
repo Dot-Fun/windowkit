@@ -19,7 +19,7 @@ final class PreferencesStoreTests: XCTestCase {
 
     func testDefaultBindingsHaveNoInternalConflict() {
         var seen: [UInt64: WindowAction] = [:]
-        for (action, shortcut) in DefaultBindings.spectacle {
+        for (action, shortcut) in DefaultBindings.grid3 {
             let fp = (UInt64(shortcut.keyCode) << 32) | UInt64(shortcut.modifiers)
             if let prior = seen[fp] {
                 XCTFail("\(action) and \(prior) share shortcut \(shortcut.displayString)")
@@ -30,18 +30,18 @@ final class PreferencesStoreTests: XCTestCase {
 
     func testConflictDetection() {
         let store = PreferencesStore(defaults: isolatedDefaults())
-        let taken = store.bindings[.leftHalf]!
-        let conflict = store.set(taken, for: .rightHalf)
-        XCTAssertEqual(conflict?.existingAction, .leftHalf)
+        let taken = store.bindings[.grid3MiddleLeft]!
+        let conflict = store.set(taken, for: .grid3MiddleRight)
+        XCTAssertEqual(conflict?.existingAction, .grid3MiddleLeft)
         XCTAssertEqual(conflict?.shortcut, taken)
         // Unchanged on conflict.
-        XCTAssertEqual(store.bindings[.rightHalf], DefaultBindings.spectacle[.rightHalf])
+        XCTAssertEqual(store.bindings[.grid3MiddleRight], DefaultBindings.grid3[.grid3MiddleRight])
     }
 
     func testExportImportRoundTrip() throws {
         let store = PreferencesStore(defaults: isolatedDefaults())
         // Mutate a little so we're not just round-tripping defaults.
-        store.set(Shortcut(keyCode: 7, modifiers: 0x100), for: .center)
+        store.set(Shortcut(keyCode: 7, modifiers: 0x100), for: .grid3MiddleCenter)
         let data = store.exportJSON()
 
         let fresh = PreferencesStore(defaults: isolatedDefaults())
@@ -51,9 +51,65 @@ final class PreferencesStoreTests: XCTestCase {
 
     func testSetNilClearsBinding() {
         let store = PreferencesStore(defaults: isolatedDefaults())
-        XCTAssertNotNil(store.bindings[.leftHalf])
-        store.set(nil, for: .leftHalf)
-        XCTAssertNil(store.bindings[.leftHalf])
+        XCTAssertNotNil(store.bindings[.grid3TopLeft])
+        store.set(nil, for: .grid3TopLeft)
+        XCTAssertNil(store.bindings[.grid3TopLeft])
+    }
+
+    // MARK: - Defaults shape
+
+    func testDefaultsBindOnlyTheThreeByThreeGrid() {
+        let grid: Set<WindowAction> = [
+            .grid3TopLeft, .grid3TopCenter, .grid3TopRight,
+            .grid3MiddleLeft, .grid3MiddleCenter, .grid3MiddleRight,
+            .grid3BottomLeft, .grid3BottomCenter, .grid3BottomRight,
+        ]
+        XCTAssertEqual(Set(DefaultBindings.grid3.keys), grid)
+    }
+
+    // MARK: - Empty-bindings regression
+
+    /// A persisted `{}` decodes cleanly to an empty dictionary, which used to
+    /// register zero hotkeys and leave the app inert with no keyboard route
+    /// back. Empty must fall back to defaults.
+    func testEmptyPersistedBindingsFallBackToDefaults() {
+        let defaults = isolatedDefaults()
+        defaults.set(Data("{}".utf8), forKey: "WindowKit.bindings.v1")
+        let store = PreferencesStore(defaults: defaults)
+        XCTAssertEqual(store.bindings, DefaultBindings.grid3)
+    }
+
+    func testCorruptPersistedBindingsFallBackToDefaults() {
+        let defaults = isolatedDefaults()
+        defaults.set(Data("not json".utf8), forKey: "WindowKit.bindings.v1")
+        let store = PreferencesStore(defaults: defaults)
+        XCTAssertEqual(store.bindings, DefaultBindings.grid3)
+    }
+
+    /// Clearing every shortcut by hand still self-heals on the next launch,
+    /// which is the deliberate trade documented on `load()`.
+    func testClearingEveryBindingSelfHealsOnReload() {
+        let defaults = isolatedDefaults()
+        let store = PreferencesStore(defaults: defaults)
+        for action in store.bindings.keys { store.set(nil, for: action) }
+        XCTAssertTrue(store.bindings.isEmpty)
+
+        let reload = PreferencesStore(defaults: defaults)
+        XCTAssertEqual(reload.bindings, DefaultBindings.grid3)
+    }
+
+    /// A real customisation must survive reload — the fallback triggers only
+    /// on empty, never on a non-empty stored set.
+    func testCustomBindingsSurviveReload() {
+        let defaults = isolatedDefaults()
+        let store = PreferencesStore(defaults: defaults)
+        let custom = Shortcut(keyCode: 42, modifiers: 0x900)
+        store.set(nil, for: .grid3TopLeft)
+        store.set(custom, for: .grid3BottomRight)
+
+        let reload = PreferencesStore(defaults: defaults)
+        XCTAssertEqual(reload.bindings[.grid3BottomRight], custom)
+        XCTAssertNil(reload.bindings[.grid3TopLeft])
     }
 
     func testTapWindowMsDefaultsToSpec() {

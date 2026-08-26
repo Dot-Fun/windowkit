@@ -27,7 +27,7 @@ The build is **unsigned / ad-hoc signed**. Every rebuild produces a fresh code i
 1. System Settings → Privacy & Security → Accessibility
 2. Select **WindowKit** → click the **−** button to remove it
 3. `killall WindowKit`
-4. Drag `/Users/alvinycheung/sandbox/windowkit/build/WindowKit.app` back into the list
+4. Drag `/Volumes/DevNVMe/dev/windowkit/build/WindowKit.app` back into the list
 5. Toggle it on
 
 Do not say "try it now" after a rebuild. Say "do the re-grant dance first, then try it."
@@ -44,7 +44,7 @@ dotfun orange: `Color(red: 0.97, green: 0.32, blue: 0.12)` — exposed as `dotfu
 
 - `Sources/WindowEngine/` — pure geometry + AX wrapper (no app-level state). `Geometry.targetFrame(for:screen:current:)` is the heart.
 - `Sources/HotkeyManager/` — Carbon `RegisterEventHotKey` + `TapDetector` for multi-tap cycles (`TapCycles.resolve`).
-- `Sources/PreferencesStore/` — `UserDefaults`-backed `ObservableObject`; `DefaultBindings.spectacle`, `tapWindowMs`.
+- `Sources/PreferencesStore/` — `UserDefaults`-backed `ObservableObject`; `DefaultBindings.grid3` (the 9 3×3 grid keys — the only bound hotkeys), `tapWindowMs`.
 - `Sources/PermissionsCoordinator/` — `AccessibilityTrust.statePublisher` → `.functional / .stale / .denied`. `TrustCanary` probes with a real AX call so stale grants surface.
 - `Sources/PreferencesUI/` — SwiftUI Preferences window, `ShortcutRecorderView` (NSViewRepresentable), onboarding, stale-grant warning, About.
 - `Sources/UndoStack/` — per-session window frame history.
