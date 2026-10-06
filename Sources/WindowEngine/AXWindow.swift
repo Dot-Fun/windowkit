@@ -77,6 +77,39 @@ public struct AXWindow: Equatable {
         return firstWindow(from: app)
     }
 
+    /// All windows of the app owning `pid`, in AX list order (roughly z-order).
+    /// Only windows on the visible Space of each display appear — macOS gives
+    /// no public access to windows on hidden Spaces.
+    public static func windows(pid: pid_t) -> [AXWindow] {
+        let app = AXUIElementCreateApplication(pid)
+        var ref: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &ref) == .success,
+              let arr = ref as? [AXUIElement]
+        else { return [] }
+        return arr.compactMap { element in
+            guard let role = copyStringAttr(element, kAXRoleAttribute as String),
+                  role == kAXWindowRole as String
+            else { return nil }
+            return AXWindow(element: element)
+        }
+    }
+
+    public func title() -> String? {
+        stringAttribute(kAXTitleAttribute as String)
+    }
+
+    public func subrole() -> String? {
+        stringAttribute(kAXSubroleAttribute as String)
+    }
+
+    public func isMinimized() -> Bool {
+        var ref: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXMinimizedAttribute as CFString, &ref) == .success,
+              let value = ref as? Bool
+        else { return false }
+        return value
+    }
+
     /// Process ID of the app owning this window. Used to reach the owning
     /// application element (enhanced-UI toggle, Electron a11y wake).
     public var ownerPid: pid_t {

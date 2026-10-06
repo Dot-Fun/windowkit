@@ -2,6 +2,7 @@ import AppKit
 import Carbon.HIToolbox
 import Combine
 import HotkeyManager
+import LayoutProfiles
 import PermissionsCoordinator
 import PreferencesStore
 import PreferencesUI
@@ -32,6 +33,10 @@ struct WindowKitApp: App {
                 Button("Update available — \(update.tagName) →") {
                     NSWorkspace.shared.open(update.htmlURL)
                 }
+            }
+            Divider()
+            LayoutsMenu(store: appDelegate.layouts) {
+                appDelegate.openPreferences()
             }
             Divider()
             Button("Preferences…") {
@@ -111,6 +116,11 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
     /// On-screen glass grid that previews the numpad region live.
     private let overlay = GridOverlayController()
 
+    /// Saved window layouts + the debounced display-reconfig watcher that
+    /// drives auto-restore after monitors sleep/wake or re-plug.
+    let layouts = LayoutProfileStore()
+    private let displayMonitor = DisplayReconfigMonitor()
+
     private var preferencesWindow: NSWindow?
     private var onboardingWindow: NSWindow?
     private var staleGrantWindow: NSWindow?
@@ -140,6 +150,11 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
                 self.hotkeys.apply(bindings: bindings)
             }
             .store(in: &cancellables)
+
+        displayMonitor.onSettled = { [weak self] in
+            self?.autoRestoreLayoutIfConfigured()
+        }
+        displayMonitor.start()
 
         AccessibilityTrust.statePublisher(interval: 2.0)
             .receive(on: RunLoop.main)
@@ -183,6 +198,19 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
         hotkeysArmed = false
     }
 
+    /// After a display change settles, restore the auto-restore profile that
+    /// matches the (new) arrangement — this undoes macOS shuffling windows
+    /// around when monitors sleep/wake or briefly disconnect.
+    private func autoRestoreLayoutIfConfigured() {
+        guard AccessibilityTrust.currentState() == .functional else { return }
+        guard let profile = layouts.autoRestoreProfile(matching: .current()) else { return }
+        let outcome = LayoutEngine.restore(profile)
+        NSLog(
+            "WindowKit: auto-restored layout '%@' — %d moved, %d in place, %d not found",
+            profile.name, outcome.moved, outcome.alreadyInPlace, outcome.unmatched
+        )
+    }
+
     /// Show the grid overlay on the focused window's display.
     private func presentGridOverlay() {
         guard let screen = runner.focusedScreen() ?? NSScreen.main ?? NSScreen.screens.first else { return }
@@ -216,7 +244,7 @@ final class WindowKitAppDelegate: NSObject, NSApplicationDelegate {
 
     func openPreferences() {
         if preferencesWindow == nil {
-            let hosting = NSHostingController(rootView: PreferencesWindow(store: store))
+            let hosting = NSHostingController(rootView: PreferencesWindow(store: store, layouts: layouts))
             let window = NSWindow(contentViewController: hosting)
             window.title = "WindowKit Preferences"
             window.styleMask = [.titled, .closable, .miniaturizable, .resizable]

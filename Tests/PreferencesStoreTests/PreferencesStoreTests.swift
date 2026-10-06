@@ -30,12 +30,12 @@ final class PreferencesStoreTests: XCTestCase {
 
     func testConflictDetection() {
         let store = PreferencesStore(defaults: isolatedDefaults())
-        let taken = store.bindings[.leftHalf]!
-        let conflict = store.set(taken, for: .rightHalf)
-        XCTAssertEqual(conflict?.existingAction, .leftHalf)
+        let taken = store.bindings[.undo]!
+        let conflict = store.set(taken, for: .redo)
+        XCTAssertEqual(conflict?.existingAction, .undo)
         XCTAssertEqual(conflict?.shortcut, taken)
         // Unchanged on conflict.
-        XCTAssertEqual(store.bindings[.rightHalf], DefaultBindings.spectacle[.rightHalf])
+        XCTAssertEqual(store.bindings[.redo], DefaultBindings.spectacle[.redo])
     }
 
     func testExportImportRoundTrip() throws {
@@ -51,9 +51,9 @@ final class PreferencesStoreTests: XCTestCase {
 
     func testSetNilClearsBinding() {
         let store = PreferencesStore(defaults: isolatedDefaults())
-        XCTAssertNotNil(store.bindings[.leftHalf])
-        store.set(nil, for: .leftHalf)
-        XCTAssertNil(store.bindings[.leftHalf])
+        XCTAssertNotNil(store.bindings[.undo])
+        store.set(nil, for: .undo)
+        XCTAssertNil(store.bindings[.undo])
     }
 
     func testTapWindowMsDefaultsToSpec() {

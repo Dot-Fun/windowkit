@@ -13,6 +13,7 @@ let package = Package(
         .library(name: "PermissionsCoordinator", targets: ["PermissionsCoordinator"]),
         .library(name: "UndoStack", targets: ["UndoStack"]),
         .library(name: "UpdateChecker", targets: ["UpdateChecker"]),
+        .library(name: "LayoutProfiles", targets: ["LayoutProfiles"]),
     ],
     targets: [
         .executableTarget(
@@ -25,6 +26,7 @@ let package = Package(
                 "PermissionsCoordinator",
                 "UndoStack",
                 "UpdateChecker",
+                "LayoutProfiles",
             ],
             path: "App",
             exclude: ["Info.plist", "Assets.xcassets", "AppIcon.icns"]
@@ -42,7 +44,7 @@ let package = Package(
         ),
         .target(
             name: "PreferencesUI",
-            dependencies: ["PreferencesStore", "HotkeyManager", "WindowEngine", "PermissionsCoordinator", "UpdateChecker"],
+            dependencies: ["PreferencesStore", "HotkeyManager", "WindowEngine", "PermissionsCoordinator", "UpdateChecker", "LayoutProfiles"],
             path: "Sources/PreferencesUI",
             resources: [.process("Resources")]
         ),
@@ -53,6 +55,11 @@ let package = Package(
             path: "Sources/UndoStack"
         ),
         .target(name: "UpdateChecker", path: "Sources/UpdateChecker"),
+        .target(
+            name: "LayoutProfiles",
+            dependencies: ["WindowEngine"],
+            path: "Sources/LayoutProfiles"
+        ),
         .testTarget(
             name: "WindowEngineTests",
             dependencies: ["WindowEngine"],
@@ -77,6 +84,11 @@ let package = Package(
             name: "PermissionsCoordinatorTests",
             dependencies: ["PermissionsCoordinator"],
             path: "Tests/PermissionsCoordinatorTests"
+        ),
+        .testTarget(
+            name: "LayoutProfilesTests",
+            dependencies: ["LayoutProfiles"],
+            path: "Tests/LayoutProfilesTests"
         ),
     ]
 )
